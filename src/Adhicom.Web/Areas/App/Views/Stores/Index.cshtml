@@ -1,0 +1,47 @@
+@model Adhicom.Web.ViewModels.StoresIndexViewModel
+@{ ViewData["Title"] = "Mes boutiques — Adhicom"; }
+<div class="page-head">
+    <div><p class="breadcrumb"><a href="/app">Tableau de bord</a> / Mes boutiques</p><h1>Mes boutiques</h1></div>
+    @if (Model.Stores.Count < Model.MaxStores)
+    {
+        <a class="btn btn-primary" href="/app/stores/create">+ Nouvelle boutique</a>
+    }
+</div>
+@if (Model.Stores.Count == 0)
+{
+    <div class="empty-state card"><h3>Vous n'avez pas encore de boutique</h3><p>Créez votre première boutique en quelques minutes.</p><a class="btn btn-accent" href="/app/stores/create">Créer ma boutique →</a></div>
+}
+else
+{
+    <div class="feature-grid">
+        @foreach (var store in Model.Stores)
+        {
+            <article class="card" style="display:flex;gap:1rem;align-items:center">
+                @if (!string.IsNullOrEmpty(store.LogoUrl))
+                {
+                    <img src="@store.LogoUrl" alt="Logo @store.Name" style="width:64px;height:64px;object-fit:contain;border-radius:14px;border:1px solid var(--line)" />
+                }
+                else
+                {
+                    <span class="avatar" style="width:64px;height:64px;font-size:1.3rem">@Ui.Initials(store.Name)</span>
+                }
+                <div style="min-width:0">
+                    <h3 style="margin:0;font-size:1.05rem">@store.Name</h3>
+                    <p class="small muted" style="margin:.1rem 0 .35rem">@(store.Slug).adhicom.com · @Ui.StoreStatus(store.Status)</p>
+                    <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+                        @if (Model.ActiveStoreId == store.Id)
+                        {
+                            <span class="badge badge-ok">Active</span>
+                        }
+                        else
+                        {
+                            <form method="post" action="/app/stores/select" class="inline-form">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@store.Id" /><button class="btn btn-outline btn-sm" type="submit">Activer</button></form>
+                        }
+                        <a class="btn btn-ghost btn-sm" href="/storefront/@store.Slug" target="_blank" rel="noopener">Voir ↗</a>
+                    </div>
+                </div>
+            </article>
+        }
+    </div>
+    <p class="small muted" style="margin-top:1rem">Votre plan autorise @Model.MaxStores boutique(s). <a href="/app/subscription">Gérer mon abonnement →</a></p>
+}

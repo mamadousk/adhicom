@@ -1,0 +1,49 @@
+@{
+    ViewData["Title"] = "Tarifs — Adhicom";
+    var plans = ViewData["Plans"] as List<Plan> ?? new();
+}
+<section class="section">
+    <div class="container">
+        <div class="section-head">
+            <p class="eyebrow">Tarifs</p>
+            <h1>Des formules qui grandissent avec vous</h1>
+            <p class="muted">Aucun tarif codé en dur : les plans et leurs limites sont configurables. Résiliation libre, données conservées.</p>
+        </div>
+        <div class="plan-grid">
+            @foreach (var plan in plans)
+            {
+                var featured = plan.Key == "pro";
+                <article class="plan-card @(featured ? "featured" : "")">
+                    @if (featured) { <span class="plan-badge">Populaire</span> }
+                    <span class="plan-name">@plan.Name</span>
+                    <div class="plan-price">
+                        @if (plan.MonthlyPrice == 0)
+                        {
+                            <text>0 $</text>
+                        }
+                        else
+                        {
+                            @plan.MonthlyPrice.ToString("0.##") <small>$&nbsp;/&nbsp;mois</small>
+                        }
+                    </div>
+                    <p class="small muted">@plan.Description</p>
+                    <ul class="plan-features">
+                        @foreach (var feature in plan.Features.OrderBy(f => f.SortOrder))
+                        {
+                            <li>@feature.Label</li>
+                        }
+                    </ul>
+                    <div class="small muted" style="margin-bottom:.8rem">Stockage images : @(plan.MaxStorageMb >= 1024 ? $"{plan.MaxStorageMb / 1024} Go" : $"{plan.MaxStorageMb} Mo")</div>
+                    <a class="btn @(featured ? "btn-primary" : "btn-outline") btn-block" href="/account/register">Choisir @plan.Name</a>
+                </article>
+            }
+        </div>
+        <div class="container-narrow" style="margin-top:2rem">
+            <div class="card">
+                <h3 style="margin-bottom:.6rem">Questions sur la facturation</h3>
+                <p class="small muted">Le règlement se fait en Franc congolais ou en dollars via M-Pesa, Airtel Money, Orange Money ou virement bancaire. Une facture proforma vous est envoyée avant chaque échéance. En cas d'impayé, une <strong>période de grâce de 7 jours</strong> s'applique avant limitation — vos données ne sont jamais supprimées.</p>
+                <p class="small"><a href="/contact">Une question ? Contactez-nous →</a></p>
+            </div>
+        </div>
+    </div>
+</section>

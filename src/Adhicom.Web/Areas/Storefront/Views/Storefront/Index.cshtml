@@ -1,0 +1,113 @@
+@model Adhicom.Domain.Stores.Store
+@{
+    var store = Model;
+    var settings = ViewData["Settings"] as Adhicom.Domain.Stores.StoreSettings;
+    var categories = ViewData["Categories"] as List<Adhicom.Domain.Catalog.Category> ?? new();
+    var activeCategory = ViewData["ActiveCategory"] as Adhicom.Domain.Catalog.Category;
+    var q = ViewData["Query"] as string;
+    var page = ViewData["Page"] as int? ?? 1;
+    var totalPages = ViewData["TotalPages"] as int? ?? 1;
+    var currency = settings?.Currency ?? "USD";
+    var deliveryInfo = settings?.DeliveryInfo;
+
+    ViewData["Title"] = settings?.SeoTitle ?? $"{store.Name} — {store.City ?? "Kinshasa"} | Commandez en ligne";
+    ViewData["MetaDescription"] = settings?.SeoDescription ?? $"{store.Name}. {store.Description} Livraison rapide à {store.City ?? "Kinshasa"}. Commandez en ligne sur Adhicom.";
+    ViewData["CanonicalUrl"] = $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}";
+    var baseUrl = $"{Context.Request.Scheme}://{Context.Request.Host}";
+}
+@section Head {
+    <script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "type": "Store",
+        "name": "@store.Name",
+        "description": "@((store.Description ?? "").Replace("\"", "'").Replace("\n", " ").Replace("\\", ""))",
+        "url": "@baseUrl/storefront/@store.Slug",
+        "address": { "@@type": "PostalAddress", "addressLocality": "@(store.City ?? "Kinshasa")", "addressCountry": "@store.Country" }
+    }
+    </script>
+}
+
+<section class="shop-hero">
+    <div class="inner">
+        <div>
+            <h1>@store.Name</h1>
+            <p>@(store.Description ?? "Bienvenue dans notre boutique.")</p>
+            <div style="display:flex;gap:.6rem;margin-top:1rem;flex-wrap:wrap">
+                <a class="btn btn-accent" href="#catalogue">Voir le catalogue →</a>
+                @if (store.WhatsappNumber is not null) { <a class="btn btn-outline" style="border-color:#fff;color:#fff" href="https://wa.me/@store.WhatsappNumber.TrimStart('+').Replace(" ", "")" rel="noopener">💬 WhatsApp</a> }
+            </div>
+        </div>
+        @if (store.BannerUrl is not null)
+        {
+            <img src="@store.BannerUrl" alt="@store.Name" class="banner-img" style="width:100%;max-height:220px;object-fit:cover;border-radius:16px;box-shadow:0 18px 40px rgba(0,0,0,.3)" />
+        }
+    </div>
+</section>
+
+@if (categories.Count > 0)
+{
+    <nav class="chip-row" aria-label="Catégories">
+        <a class="chip @(activeCategory is null && string.IsNullOrEmpty(q) ? "active" : "")" href="/storefront/@store.Slug">Tout</a>
+        @foreach (var c in categories)
+        {
+            <a class="chip @(activeCategory?.Id == c.Id ? "active" : "")" href="/storefront/@store.Slug?cat=@c.Slug">@c.Name</a>
+        }
+    </nav>
+}
+
+<h2 id="catalogue" style="max-width:1180px;margin:0 auto;padding:0 1.1rem .6rem;font-size:1.15rem;color:var(--shop-primary)">Notre catalogue @(q is null ? "" : $"— « {q} »") @(activeCategory is null ? "" : $"— {activeCategory.Name}")</h2>
+
+@{
+    var products = ViewData["Products"] as List<Adhicom.Domain.Catalog.Product> ?? new();
+    var lowThreshold = settings?.LowStockThreshold ?? 5;
+}
+<div class="shop-grid">
+    @if (products.Count == 0)
+    {
+        <div class="empty-state card" style="grid-column:1/-1"><p>@(q is null ? "Aucun produit pour l'instant." : $"Aucun produit trouvé pour « {q} ».")</p></div>
+    }
+    @foreach (var p in products)
+    {
+        var img = p.Images.OrderByDescending(i => i.IsPrimary).ThenBy(i => i.DisplayOrder).FirstOrDefault()?.Url;
+        var promo = p.CompareAtPrice is { } cap && cap > p.Price;
+        <a class="product-card" href="/storefront/@store.Slug/Product/@p.Slug">
+            <div class="product-media">
+                @if (img is not null) { <img src="@img" alt="@p.Name" loading="lazy" class="lazy-img" /> }
+                else { <span style="font-size:3rem;color:#C7CFCB">@Ui.Initials(p.Name)</span> }
+            </div>
+            <div class="product-body">
+                <span class="product-title">@p.Name</span>
+                <span class="product-price">@Ui.Money(p.Price, currency)@if (promo) { <span class="price-old">@Ui.Money(p.CompareAtPrice!.Value, currency)</span> <span class="promo-badge">Promo</span> }</span>
+                @if (p.StockQuantity <= 0)
+                {
+                    <span class="stock-dot out">Rupture de stock</span>
+                }
+                else if (p.StockQuantity <= lowThreshold)
+                {
+                    <span class="stock-dot low">Plus que @p.StockQuantity en stock</span>
+                }
+            </div>
+        </a>
+    }
+</div>
+
+@if (totalPages > 1)
+{
+    <ul class="pagination" style="padding-bottom:1rem">
+        @for (var i = 1; i <= totalPages; i++)
+        {
+            <li class="@(i == page ? "active" : "")"><a href="/storefront/@store.Slug?page=@i&cat=@activeCategory?.Slug&q=@q">@i</a></li>
+        }
+    </ul>
+}
+
+@if (deliveryInfo is not null)
+{
+    <section style="max-width:1180px;margin:0 auto 2rem;padding:0 1.1rem">
+        <div class="card" style="display:flex;gap:.8rem;align-items:center">
+            <span style="font-size:1.4rem">🚚</span>
+            <div><strong>Livraison</strong><br /><span class="small">@deliveryInfo</span></div>
+        </div>
+    </section>
+}

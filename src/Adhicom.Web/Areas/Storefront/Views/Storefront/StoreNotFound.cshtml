@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Boutique introuvable — Adhicom</title>
+    <link rel="icon" href="/img/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/site.css" />
+</head>
+<body style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#F6F6F3;padding:1.5rem">
+    <div class="confirm-box" style="max-width:560px">
+        <div style="font-size:3rem">🔍</div>
+        <h1 style="font-size:1.5rem;color:var(--brand-700)">Boutique introuvable</h1>
+        <p class="muted">La boutique <strong>@(Context.Request.RouteValues["storeSlug"])</strong> n'existe pas ou n'est plus disponible. Vérifiez le lien, ou explorez nos boutiques partenaires.</p>
+        <a class="btn btn-primary" href="/">Découvrir Adhicom →</a>
+    </div>
+</body>
+</html>

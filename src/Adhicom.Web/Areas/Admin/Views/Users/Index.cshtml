@@ -1,0 +1,23 @@
+@model Adhicom.Web.ViewModels.AdminUsersViewModel
+@{ ViewData["Title"] = "Utilisateurs — Administration Adhicom"; }
+<div class="page-head"><div><p class="breadcrumb"><a href="/admin">Administration</a> / Utilisateurs</p><h1>Utilisateurs <span class="muted">(@Model.Users.Count)</span></h1></div></div>
+<form method="get" class="card card-flat" style="margin-bottom:1rem"><input type="search" name="search" value="@Model.Search" placeholder="Rechercher par e-mail ou nom..." style="max-width:360px" /> <button class="btn btn-outline btn-sm" type="submit">Rechercher</button></form>
+<div class="table-wrap card" style="padding:0"><table class="table">
+    <thead><tr><th>Utilisateur</th><th>Rôles</th><th>Boutiques</th><th>Compte</th><th>Inscrit le</th><th></th></tr></thead>
+    <tbody>
+    @if (Model.Users.Count == 0) { <tr><td colspan="6" class="muted">Aucun utilisateur trouvé.</td></tr> }
+    @foreach (var u in Model.Users)
+    {
+        <tr>
+            <td><span class="avatar">@Ui.Initials(u.FullName)</span> <strong>@u.FullName</strong><br /><span class="small muted">@u.Email</span></td>
+            <td>@string.Join(", ", u.Roles)</td>
+            <td>@u.StoreCount</td>
+            <td>@(u.IsActive ? Html.Raw("<span class=\"badge badge-ok\">Actif</span>") : Html.Raw("<span class=\"badge badge-danger\">Désactivé</span>"))</td>
+            <td>@u.CreatedAtUtc.ToString("dd/MM/yyyy")</td>
+            <td>
+                <form class="inline-form" method="post" action="/admin/users/toggleactive/@u.Id">@Html.AntiForgeryToken()<button class="btn btn-ghost btn-sm" type="submit">@(u.IsActive ? "Désactiver" : "Réactiver")</button></form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table></div>

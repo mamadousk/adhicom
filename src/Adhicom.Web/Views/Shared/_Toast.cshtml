@@ -1,0 +1,5 @@
+@if (TempData["Toast"] is string toast)
+{
+    var isError = (TempData["ToastType"] as string) == "error";
+    <div class="toast @(isError ? "error" : "")" role="status">@toast</div>
+}

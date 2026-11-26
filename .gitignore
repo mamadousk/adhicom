@@ -1,0 +1,43 @@
+# --- .NET ---
+bin/
+obj/
+out/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+.vscode/
+.idea/
+*.DotSettings.user
+
+# --- Tests & couverture ---
+TestResults/
+coverage*.xml
+coverage*.json
+*.coverage
+
+# --- Logs & runtime ---
+*.log
+logs/
+.env
+.env.local
+*.pem
+*.key
+secrets/
+
+# --- Node (si outils front) ---
+node_modules/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Outils locaux ---
+.remember/
+
+# --- Sauvegardes ---
+deployment/backups/
+*.dump
+uploads-*.tar.gz

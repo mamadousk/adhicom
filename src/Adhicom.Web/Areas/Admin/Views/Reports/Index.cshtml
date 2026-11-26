@@ -1,0 +1,35 @@
+@model List<Adhicom.Domain.Administration.Report>
+@{
+    ViewData["Title"] = "Signalements — Administration Adhicom";
+    var reportStatuses = Enum.GetValues<ReportStatus>();
+}
+<div class="page-head"><div><p class="breadcrumb"><a href="/admin">Administration</a> / Signalements</p><h1>Signalements <span class="muted">(@Model.Count)</span></h1></div></div>
+@if (Model.Count == 0)
+{
+    <div class="empty-state card"><p>Aucun signalement — tout va bien 🎉</p></div>
+}
+else
+{
+    @foreach (var r in Model)
+    {
+        <article class="card" style="margin-bottom:.75rem">
+            <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+                <div style="min-width:0">
+                    <strong>@r.Reason</strong>
+                    <p class="small muted" style="margin:.15rem 0">@r.CreatedAtUtc.ToString("dd/MM/yyyy HH:mm") UTC@(r.ReporterEmail is null ? "" : $" · {r.ReporterEmail}")@(r.StoreId is null ? "" : $" · boutique {r.StoreId}")</p>
+                    @if (r.Details is not null) { <p style="margin:.25rem 0 0">@r.Details</p> }
+                    @if (r.AdminNote is not null) { <p class="small" style="margin:.25rem 0 0;color:var(--brand-700)"><strong>Note admin :</strong> @r.AdminNote</p> }
+                </div>
+                <span class="badge @(r.Status == ReportStatus.New ? "badge-warn" : r.Status == ReportStatus.Actioned ? "badge-ok" : "badge-neutral")">@Ui.ReportStatus(r.Status)</span>
+            </div>
+            <form method="post" action="/admin/reports/setstatus/@r.Id" style="display:flex;gap:.5rem;margin-top:.6rem;flex-wrap:wrap;align-items:center">
+                @Html.AntiForgeryToken()
+                <select name="status" class="small" style="padding:.35rem">
+                    @foreach (var st in reportStatuses) { <option value="@st" selected="@(st == r.Status ? "selected" : null)">@Ui.ReportStatus(st)</option> }
+                </select>
+                <input type="text" name="adminNote" value="@r.AdminNote" placeholder="Note interne (optionnelle)" style="flex:1;min-width:180px;padding:.35rem .6rem" />
+                <button class="btn btn-outline btn-sm" type="submit">Enregistrer</button>
+            </form>
+        </article>
+    }
+}

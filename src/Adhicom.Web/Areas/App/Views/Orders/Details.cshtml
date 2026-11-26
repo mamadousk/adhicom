@@ -1,0 +1,111 @@
+@model Adhicom.Web.ViewModels.OrderDetailsViewModel
+@{
+    ViewData["Title"] = $"Commande {Model.Order.OrderNumber} — Adhicom";
+    var o = Model.Order;
+}
+<div class="page-head">
+    <div><p class="breadcrumb"><a href="/app/orders">Commandes</a> / @o.OrderNumber</p><h1>Commande <strong>@o.OrderNumber</strong></h1></div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        @if (Model.WhatsAppUrl is not null) { <a class="btn btn-outline btn-sm" href="@Model.WhatsAppUrl" target="_blank" rel="noopener">💬 Contacter le client</a> }
+        <button class="btn btn-ghost btn-sm" data-copy="@o.OrderNumber">Copier le numéro</button>
+    </div>
+</div>
+@if (TempData["Toast"] is string toast) { <div class="alert @(((string?)TempData["ToastType"]) == "error" ? "alert-error" : "alert-ok")">@toast</div> }
+
+<div class="detail-grid">
+    <div>
+        <div class="card" style="margin-bottom:1rem">
+            <h3 style="font-size:1rem">Articles</h3>
+            <div class="table-wrap"><table class="table">
+                <thead><tr><th>Produit</th><th>Qté</th><th>Prix</th><th>Total</th></tr></thead>
+                <tbody>
+                @foreach (var item in o.Items)
+                {
+                    <tr>
+                        <td><strong>@item.ProductName</strong>@if (item.VariantName is not null) { <br /><span class="small muted">@item.VariantName</span> }</td>
+                        <td>@item.Quantity</td>
+                        <td>@Ui.Money(item.UnitPrice, o.Currency)</td>
+                        <td>@Ui.Money(item.UnitPrice * item.Quantity, o.Currency)</td>
+                    </tr>
+                }
+                </tbody>
+            </table></div>
+            <div class="summary-box" style="position:static;border:none;box-shadow:none;padding:.5rem 0 0">
+                <div class="summary-row"><span>Sous-total</span><span>@Ui.Money(o.SubTotal, o.Currency)</span></div>
+                <div class="summary-row"><span>Livraison</span><span>@Ui.Money(o.ShippingFee, o.Currency)</span></div>
+                <div class="summary-row summary-total"><span>Total</span><span>@Ui.Money(o.Total, o.Currency)</span></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="font-size:1rem">Historique de la commande</h3>
+            @if (Model.History.Count == 0) { <p class="muted small">Aucun changement enregistré.</p> }
+            <ol style="padding-left:1.2rem;margin:0">
+                @foreach (var h in Model.History)
+                {
+                    <li style="margin-bottom:.5rem">
+                        <strong>@Ui.OrderStatus(h.NewStatus)</strong> <span class="small muted">— @h.ChangedAtUtc.ToString("dd/MM/yyyy HH:mm")@(h.ChangedByName is null ? "" : $" par {h.ChangedByName}")</span>
+                        @if (!string.IsNullOrWhiteSpace(h.Comment)) { <br /><span class="small">@h.Comment</span> }
+                    </li>
+                }
+            </ol>
+        </div>
+    </div>
+
+    <div>
+        <div class="card" style="margin-bottom:1rem">
+            <h3 style="font-size:1rem">Client</h3>
+            <p style="margin:0"><strong>@o.CustomerName</strong><br />
+                <a href="tel:@o.CustomerPhone">📞 @o.CustomerPhone</a><br />
+                @if (!string.IsNullOrWhiteSpace(o.CustomerEmail)) { <text>✉️ @o.CustomerEmail<br /></text> }
+                @if (!string.IsNullOrWhiteSpace(o.CustomerAddress) || !string.IsNullOrWhiteSpace(o.CustomerCity)) { <text>📍 @o.CustomerAddress, @o.CustomerDistrict, @o.CustomerCity<br /></text> }
+                @if (!string.IsNullOrWhiteSpace(o.CustomerInstructions)) { <em class="small muted">« @o.CustomerInstructions »</em> }
+            </p>
+        </div>
+
+        <div class="card" style="margin-bottom:1rem">
+            <h3 style="font-size:1rem">Paiement</h3>
+            <p style="margin:.2rem 0">Moyen : <strong>@Ui.PaymentMethod(o.PaymentMethod)</strong><br />Statut : <span class="badge @(o.PaymentStatus == PaymentStatus.Paid ? "badge-ok" : "badge-warn")">@Ui.PaymentStatus(o.PaymentStatus)</span></p>
+            @if (o.PaymentStatus != PaymentStatus.Paid)
+            {
+                <form method="post" action="/app/orders/confirmpayment/@o.Id" class="inline-form" style="margin-top:.6rem">
+                    @Html.AntiForgeryToken()
+                    <input type="text" name="reference" placeholder="Référence (optionnelle, ex. M-Pesa BF1234)" style="margin-bottom:.5rem" />
+                    <button class="btn btn-primary btn-sm" type="submit">✅ Confirmer le paiement reçu</button>
+                </form>
+            }
+            else
+            {
+                <p class="small text-success" style="margin-top:.4rem;color:var(--ok)">Paiement encaissé — merci !</p>
+            }
+        </div>
+
+        <div class="card">
+            <h3 style="font-size:1rem">Faire avancer la commande</h3>
+            @if (Model.AllowedNextStatuses.Length == 0)
+            {
+                <p class="muted small">Statut final — aucune transition possible.</p>
+            }
+            else
+            {
+                <form method="post" action="/app/orders/updatestatus/@o.Id">
+                    @Html.AntiForgeryToken()
+                    <div class="form-group">
+                        <label for="status">Nouveau statut</label>
+                        <select id="status" name="status" class="status-select" required>
+                            @foreach (var next in Model.AllowedNextStatuses)
+                            {
+                                <option value="@next">@Ui.OrderStatus(next)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="comment">Commentaire (optionnel)</label>
+                        <input id="comment" type="text" name="comment" placeholder="Ex. Appelé — livraison demain matin" />
+                    </div>
+                    <button class="btn btn-primary" type="submit">Mettre à jour le statut</button>
+                </form>
+            }
+        </div>
+    </div>
+</div>

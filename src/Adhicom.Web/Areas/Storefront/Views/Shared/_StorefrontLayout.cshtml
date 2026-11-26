@@ -1,0 +1,97 @@
+@{
+    var store = ViewData["Store"] as Adhicom.Domain.Stores.Store
+        ?? ViewData.Model as Adhicom.Domain.Stores.Store;
+    if (store is null)
+    {
+        try { store = (ViewData.Model as dynamic)?.Store as Adhicom.Domain.Stores.Store; } catch { }
+    }
+    var settings = ViewData["Settings"] as Adhicom.Domain.Stores.StoreSettings;
+    var cartCount = ViewData["CartCount"] as int? ?? 0;
+    var fontStack = store?.FontFamily switch
+    {
+        "serif" => "Georgia, 'Times New Roman', serif",
+        "rounded" => "'Segoe UI', 'Trebuchet MS', Verdana, sans-serif",
+        _ => "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+    };
+    var title = ViewData["Title"] as string ?? store?.Name ?? "Boutique";
+    var metaDescription = ViewData["MetaDescription"] as string ?? store?.Description;
+    var primary = store?.PrimaryColor ?? "#0F4C3A";
+    var secondary = store?.SecondaryColor ?? "#E3A008";
+    var storeSlug = store?.Slug ?? Context.Request.RouteValues["storeSlug"]?.ToString() ?? "";
+    var canonical = ViewData["CanonicalUrl"] as string;
+}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@title</title>
+    @if (metaDescription is not null) { <meta name="description" content="@metaDescription" /> }
+    @if (canonical is not null) { <link rel="canonical" href="@canonical" /> }
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="@title" />
+    @if (metaDescription is not null) { <meta property="og:description" content="@metaDescription" /> }
+    <meta property="og:site_name" content="@(store?.Name ?? "Adhicom")" />
+    @if (store?.LogoUrl is not null) { <meta property="og:image" content="@store.LogoUrl" /> }
+    <link rel="icon" href="@(store?.LogoUrl ?? "/img/favicon.svg")" />
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="/css/storefront.css" />
+    <style>
+        :root { --shop-primary: @primary; --shop-secondary: @secondary; --font-display: @fontStack; }
+        .shop-name, .product-price, .summary-total { font-family: @fontStack; }
+    </style>
+    @RenderSection("Head", required: false)
+</head>
+<body class="shop-body">
+    @if (settings is { ShowBanner: true, BannerText: not null and not "" })
+    {
+        <div class="shop-banner" role="note">@settings.BannerText</div>
+    }
+    <header class="shop-header">
+        <div class="inner">
+            <a class="shop-logo" href="/storefront/@storeSlug" aria-label="@store?.Name — accueil">
+                @if (store?.LogoUrl is not null)
+                {
+                    <img src="@store.LogoUrl" alt="Logo @store?.Name" class="logo-img" />
+                }
+                else
+                {
+                    <span class="shop-name">@Ui.Initials(store?.Name)</span>
+                }
+                <span class="shop-name">@store?.Name</span>
+            </a>
+            <form class="shop-search" method="get" action="/storefront/@storeSlug" role="search">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+                <input type="search" name="q" value="@(ViewData["Query"] as string)" placeholder="Rechercher un produit..." aria-label="Rechercher un produit" />
+            </form>
+            <a class="cart-btn" href="/storefront/@storeSlug/Panier" aria-label="Voir mon panier, @cartCount article(s)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9.5" cy="19.5" r="1.6"/><circle cx="17" cy="19.5" r="1.6"/></svg>
+                Panier
+                @if (cartCount > 0) { <span class="cart-count">@cartCount</span> }
+            </a>
+        </div>
+    </header>
+    @if (TempData["Toast"] is string toast)
+    {
+        <div class="toast shop-toast @(((string?)TempData["ToastType"]) == "error" ? "is-error" : "")" role="status">@toast</div>
+    }
+    <main>
+        @RenderBody()
+    </main>
+    <footer class="shop-footer">
+        <div class="inner">
+            <div>
+                <strong style="color:#fff">@store?.Name</strong>
+                @if (store?.Description is not null) { <p style="margin:.2rem 0 0;max-width:420px">@store.Description</p> }
+                @if (store?.Address is not null || store?.City is not null) { <p style="margin:.3rem 0 0">📍 @store.Address@(store.City is null ? "" : $", {store.City}")</p> }
+                @if (settings?.ContactPhone is not null) { <p style="margin:.15rem 0 0">📞 <a href="tel:@settings.ContactPhone">@settings.ContactPhone</a></p> }
+            </div>
+            <div style="text-align:right">
+                @if (settings?.DeliveryInfo is not null) { <p style="margin:0;max-width:360px">🚚 @settings.DeliveryInfo</p> }
+                @if (store?.WhatsappNumber is not null) { <p style="margin:.3rem 0 0">💬 WhatsApp : <a href="https://wa.me/@store.WhatsappNumber.TrimStart('+').Replace(" ", "")" rel="noopener">@store.WhatsappNumber</a></p> }
+                <p style="margin:.5rem 0 0"><a href="/" style="opacity:.8;font-size:.78rem">Propulsée par Adhicom — Une plateforme. Votre boutique.</a></p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

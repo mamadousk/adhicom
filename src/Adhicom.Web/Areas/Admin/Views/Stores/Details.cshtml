@@ -1,0 +1,69 @@
+@model Adhicom.Domain.Stores.Store
+@{
+    ViewData["Title"] = $"{Model.Name} — Administration";
+    string OwnerEmail = ViewData["OwnerEmail"] as string ?? "—";
+    int ProductCount = ViewData["ProductCount"] as int? ?? 0;
+    int OrderCount = ViewData["OrderCount"] as int? ?? 0;
+    int CustomerCount = ViewData["CustomerCount"] as int? ?? 0;
+}
+<div class="page-head">
+    <div><p class="breadcrumb"><a href="/admin/stores">Boutiques</a> / @Model.Name</p><h1>@Model.Name</h1><p class="muted">@(Model.Slug).adhicom.com · @Ui.StoreStatus(Model.Status)</p></div>
+    <a class="btn btn-outline btn-sm" href="/storefront/@Model.Slug" target="_blank" rel="noopener">Voir la boutique ↗</a>
+</div>
+
+<div class="kpi-grid" style="margin-bottom:1rem">
+    <div class="card-kpi kpi-brand"><div class="kpi-label">Produits</div><div class="kpi-value">@ProductCount</div></div>
+    <div class="card-kpi kpi-accent"><div class="kpi-label">Commandes</div><div class="kpi-value">@OrderCount</div></div>
+    <div class="card-kpi kpi-info"><div class="kpi-label">Clients</div><div class="kpi-value">@CustomerCount</div></div>
+</div>
+
+<div class="detail-grid">
+    <div class="card">
+        <h3 style="font-size:1rem">Informations</h3>
+        <dl class="kv-list">
+            <div><dt>Propriétaire</dt><dd>@OwnerEmail</dd></div>
+            <div><dt>Secteur</dt><dd>@(Model.BusinessCategory ?? "—")</dd></div>
+            <div><dt>Ville / Pays</dt><dd>@(Model.City ?? "—"), @Model.Country</dd></div>
+            <div><dt>Adresse</dt><dd>@(Model.Address ?? "—")</dd></div>
+            <div><dt>WhatsApp</dt><dd>@(Model.WhatsappNumber ?? "—")</dd></div>
+            <div><dt>E-mail commercial</dt><dd>@(Model.BusinessEmail ?? "—")</dd></div>
+            <div><dt>Créée le</dt><dd>@Model.CreatedAtUtc.ToString("dd/MM/yyyy HH:mm") UTC</dd></div>
+            @if (Model.Status == StoreStatus.Suspended)
+            {
+                <div><dt>Motif de suspension</dt><dd>@(Model.SuspendedReason ?? "—")<br /><span class="small muted">@Model.SuspendedAtUtc?.ToString("dd/MM/yyyy HH:mm") UTC</span></dd></div>
+            }
+        </dl>
+        @if (Model.Domains.Count > 0)
+        {
+            <h3 style="font-size:.95rem;margin-top:1rem">Domaines</h3>
+            <ul class="small">
+                @foreach (var d in Model.Domains) { <li><code>@d.Domain</code> @(d.IsPrimary ? "(principal)" : "")</li> }
+            </ul>
+        }
+    </div>
+
+    <div class="card">
+        <h3 style="font-size:1rem">Actions</h3>
+        @if (Model.Status == StoreStatus.Active || Model.Status == StoreStatus.PendingValidation)
+        {
+            <form method="post" action="/admin/stores/suspend/@Model.Id" data-confirm="Suspendre cette boutique ? Elle ne sera plus accessible au public.">
+                @Html.AntiForgeryToken()
+                <div class="form-group"><label for="reason">Motif (visible par l'équipe, transmis au commerçant)</label><textarea id="reason" name="reason" rows="2" placeholder="Ex. Signalements répétés de commandes non livrées"></textarea></div>
+                <button class="btn btn-danger" type="submit">⏸️ Suspendre la boutique</button>
+            </form>
+        }
+        else if (Model.Status == StoreStatus.Suspended || Model.Status == StoreStatus.Disabled)
+        {
+            <form method="post" action="/admin/stores/reactivate/@Model.Id" style="margin-bottom:.75rem">
+                @Html.AntiForgeryToken()
+                <button class="btn btn-primary" type="submit">✅ Réactiver la boutique</button>
+            </form>
+        }
+        <form method="post" action="/admin/stores/close/@Model.Id" data-confirm="Fermer définitivement ? Les données sont conservées mais la boutique disparaît du public.">
+            @Html.AntiForgeryToken()
+            <div class="form-group"><label for="closereason">Motif de fermeture</label><input id="closereason" name="reason" type="text" placeholder="Ex. Demande du commerçant" /></div>
+            <button class="btn btn-outline btn-sm" type="submit" style="border-color:var(--danger);color:var(--danger)">Fermer définitivement</button>
+        </form>
+        <p class="small muted" style="margin-top:.8rem">La suppression physique n'existe pas : suspension puis fermeture conservent la traçabilité (audit).</p>
+    </div>
+</div>

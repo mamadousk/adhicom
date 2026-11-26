@@ -1,0 +1,13 @@
+@model Adhicom.Web.ViewModels.OnboardingViewModel
+@{ ViewData["Title"] = "Configuration guidée — Adhicom"; }
+<div class="page-head"><div><p class="breadcrumb"><a href="/app">Tableau de bord</a> / Configuration</p><h1>Configurez votre boutique 🚀</h1><p class="muted">8 étapes — avancement @Model.Completion%</p></div><a class="btn btn-outline" href="/storefront/@Model.Store.Slug" target="_blank" rel="noopener">Voir ma boutique ↗</a></div>
+<div class="progress" style="margin-bottom:1.4rem"><div class="progress-bar" style="width:@(Model.Completion)%"></div></div>
+<div class="feature-grid">
+    @foreach (var step in Model.Steps)
+    {
+        <a class="card" href="@step.Link" style="text-decoration:none;display:flex;gap:.8rem;align-items:flex-start;border-left:4px solid @(step.Done ? "var(--ok)" : "var(--line)")">
+            <span style="font-size:1.3rem">@(step.Done ? "✅" : "⬜")</span>
+            <span><strong style="color:var(--brand-700)">@step.Title</strong><br /><span class="small muted">@step.Description</span></span>
+        </a>
+    }
+</div>

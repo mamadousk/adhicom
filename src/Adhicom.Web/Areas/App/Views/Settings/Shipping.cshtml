@@ -1,0 +1,47 @@
+@model Adhicom.Web.ViewModels.ShippingMethodFormViewModel
+@{
+    ViewData["Title"] = "Modes de livraison — Adhicom";
+    var methods = ViewData["Methods"] as List<Adhicom.Domain.Shipping.ShippingMethod> ?? new();
+}
+<div class="page-head"><div><p class="breadcrumb"><a href="/app/settings">Paramètres</a> / Livraison</p><h1>Modes de livraison</h1><p class="muted">Le client choisit un mode à la commande. « Retrait » et « Livraison offerte dès X » sont gérés automatiquement.</p></div></div>
+
+<div class="detail-grid">
+    <div class="table-wrap card" style="padding:0"><table class="table">
+        <thead><tr><th>Mode</th><th>Type</th><th>Prix</th><th>Gratuit dès</th><th>Délai</th><th>Actif</th><th></th></tr></thead>
+        <tbody>
+        @if (methods.Count == 0) { <tr><td colspan="7" class="muted">Aucun mode configuré — ajoutez-en un à droite.</td></tr> }
+        @foreach (var m in methods)
+        {
+            <tr>
+                <td><strong>@m.Name</strong></td>
+                <td>@(m.Type switch { Adhicom.Domain.Common.ShippingMethodType.Flat => "Forfait", Adhicom.Domain.Common.ShippingMethodType.Free => "Gratuite", Adhicom.Domain.Common.ShippingMethodType.Pickup => "Retrait en boutique", Adhicom.Domain.Common.ShippingMethodType.Negotiated => "À négocier", _ => m.Type.ToString() })</td>
+                <td>@Ui.Money(m.Price)</td>
+                <td>@(m.FreeOverAmount is { } f ? Ui.Money(f) : "—")</td>
+                <td>@(m.EstimatedDelivery ?? "—")</td>
+                <td>@(m.IsActive ? "✅" : "—")</td>
+                <td style="white-space:nowrap">
+                    <form class="inline-form" method="post" action="/app/settings/shipping/Toggle/@m.Id">@Html.AntiForgeryToken()<button class="btn btn-ghost btn-sm" type="submit">@(m.IsActive ? "Désactiver" : "Activer")</button></form>
+                    <form class="inline-form" method="post" action="/app/settings/shipping/Delete/@m.Id" data-confirm="Supprimer ce mode de livraison ?">@Html.AntiForgeryToken()<button class="btn btn-ghost btn-sm" type="submit">🗑</button></form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table></div>
+    <form method="post" action="/app/settings/shipping/Create" class="card">
+        @Html.AntiForgeryToken()
+        <h3 style="font-size:1.05rem">Ajouter un mode de livraison</h3>
+        <div class="form-group"><label asp-for="Name"></label><input asp-for="Name" type="text" placeholder="Ex. Livraison Kinshasa 24–48h" /><span class="field-error" asp-validation-for="Name"></span></div>
+        <div class="form-group"><label asp-for="Type"></label>
+            <select asp-for="Type">
+                <option value="Flat">Forfait (prix fixe)</option>
+                <option value="Free">Gratuite</option>
+                <option value="Pickup">Retrait en boutique</option>
+                <option value="Negotiated">À négocier avec le client</option>
+            </select>
+        </div>
+        <div class="form-group"><label asp-for="Price"></label><input asp-for="Price" type="number" step="0.01" min="0" /></div>
+        <div class="form-group"><label asp-for="FreeOverAmount"></label><input asp-for="FreeOverAmount" type="number" step="0.01" min="0" placeholder="Ex. 50 — livraison offerte dès ce montant" /><span class="form-hint">S'applique aux modes à forfait uniquement.</span></div>
+        <div class="form-group"><label asp-for="EstimatedDelivery"></label><input asp-for="EstimatedDelivery" type="text" placeholder="Ex. 24–48h après confirmation" /></div>
+        <button class="btn btn-primary" type="submit">Ajouter le mode</button>
+    </form>
+</div>

@@ -1,0 +1,112 @@
+@{
+    ViewData["Title"] = "Adhicom — Créez votre boutique en ligne en 5 minutes (RDC)";
+    var contents = ViewData["Contents"] as Dictionary<string, string> ?? new();
+    var plans = ViewData["Plans"] as List<Plan> ?? new();
+    string C(string key, string fb) => contents.TryGetValue(key, out var v) && !string.IsNullOrWhiteSpace(v) ? v : fb;
+    var heroTitle = C("home.hero_title", "Votre boutique en ligne, prête en quelques minutes.");
+    var heroSubtitle = C("home.hero_subtitle", "Produits, commandes, livraison et paiement à la livraison — sans compétences techniques.");
+    var heroCta = C("home.hero_cta", "Créer ma boutique gratuitement");
+    var announcement = C("home.announcement", "");
+}
+
+@if (!string.IsNullOrWhiteSpace(announcement))
+{
+    <div class="alert-warn" style="text-align:center;padding:.5rem 1rem;font-size:.85rem;border-bottom:1px solid #EED89B">📢 @announcement</div>
+}
+
+<section class="hero">
+    <div class="hero-art"></div><div class="hero-art-2"></div>
+    <div class="container">
+        <span class="hero-badge">🇨🇩 Fait pour la RDC &amp; l'Afrique francophone</span>
+        <h1>@heroTitle</h1>
+        <p class="lead">@heroSubtitle</p>
+        <div class="hero-cta">
+            <a class="btn btn-accent btn-lg" href="/account/register">@heroCta →</a>
+            <a class="btn btn-outline btn-lg" style="border-color:#F4D793;color:#F4D793" href="/storefront/fashionhouse">Voir une boutique démo</a>
+        </div>
+        <p class="hero-note">✓ Gratuit pour commencer &nbsp;·&nbsp; ✓ Paiement à la livraison &nbsp;·&nbsp; ✓ WhatsApp intégré &nbsp;·&nbsp; ✓ Aucune carte bancaire requise</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="section-head">
+            <p class="eyebrow">Pourquoi Adhicom</p>
+            <h2>Tout ce qu'il faut pour vendre en ligne, sans développeur</h2>
+            <p class="muted">Adhicom est la plateforme SaaS des commerçants, boutiques physiques et PME congolaises. Chaque commerçant possède sa propre boutique indépendante — jamais une marketplace centralisée.</p>
+        </div>
+        <div class="feature-grid">
+            <div class="feature-card"><div class="feature-icon">🏪</div><h3>Votre boutique à votre nom</h3><p class="small muted">fashionhouse.adhicom.com — votre logo, vos couleurs, vos produits et votre domaine plus tard.</p></div>
+            <div class="feature-card"><div class="feature-icon">📦</div><h3>Catalogue &amp; stocks</h3><p class="small muted">Produits, catégories, photos, variantes, alertes de stock faible et historique des mouvements.</p></div>
+            <div class="feature-card"><div class="feature-icon">🛒</div><h3>Commandes en ligne</h3><p class="small muted">Panier optimisé pour mobile, commandes enregistrées dans votre tableau de bord avec numéro de suivi.</p></div>
+            <div class="feature-card"><div class="feature-icon">💵</div><h3>Paiement à la livraison</h3><p class="small muted">Le moyen préféré des Congolais. Paiement manuel Mobile Money avec preuve, confirmation d'un clic.</p></div>
+            <div class="feature-card"><div class="feature-icon">💬</div><h3>WhatsApp intégré</h3><p class="small muted">Recevez le récapitulatif de la commande dans votre WhatsApp d'un simple tap.</p></div>
+            <div class="feature-card"><div class="feature-icon">📊</div><h3>Tableau de bord</h3><p class="small muted">Commandes, chiffre d'affaires (payées/livrées), clients, produits en rupture — pilotez en un coup d'œil.</p></div>
+        </div>
+    </div>
+</section>
+
+<section class="section section-alt">
+    <div class="container">
+        <div class="section-head">
+            <p class="eyebrow">Boutique de démonstration</p>
+            <h2>« Fashion House » vend déjà sur Adhicom</h2>
+            <p class="muted">Explorez une vraie boutique construite avec la plateforme : catalogue, variantes, panier et commande WhatsApp.</p>
+        </div>
+        <div style="text-align:center">
+            <a class="btn btn-primary btn-lg" href="/storefront/fashionhouse">Ouvrir la boutique démo →</a>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="section-head">
+            <p class="eyebrow">Tarifs simples et honnêtes</p>
+            <h2>Commencez gratuitement, évoluez ensuite</h2>
+        </div>
+        <div class="plan-grid">
+            @foreach (var plan in plans)
+            {
+                var featured = plan.Key == "pro";
+                <article class="plan-card @(featured ? "featured" : "")">
+                    @if (featured) { <span class="plan-badge">Populaire</span> }
+                    <span class="plan-name">@plan.Name</span>
+                    <div class="plan-price">
+                        @if (plan.MonthlyPrice == 0) { <text>0 $</text> } else { @plan.MonthlyPrice.ToString("0.##") <small>$ / mois</small> }
+                    </div>
+                    <p class="small muted">@plan.Description</p>
+                    <ul class="plan-features">
+                        @foreach (var feature in plan.Features.OrderBy(f => f.SortOrder).Take(6))
+                        {
+                            <li>@feature.Label</li>
+                        }
+                    </ul>
+                    <a class="btn @(featured ? "btn-primary" : "btn-outline") btn-block" href="/account/register" style="margin-top:auto">Choisir @plan.Name</a>
+                </article>
+            }
+        </div>
+        <p class="small muted" style="text-align:center;margin-top:1rem">Prix en dollars américains. Tarifs en FC disponibles sur demande. Résiliation libre — vos données vous appartiennent et ne sont jamais supprimées.</p>
+    </div>
+</section>
+
+<section class="section section-alt">
+    <div class="container-narrow">
+        <div class="section-head">
+            <p class="eyebrow">Questions fréquentes</p>
+            <h2>Tout ce que vous devez savoir</h2>
+        </div>
+        <details class="faq-item"><summary>Dois-je savoir coder ?</summary><div class="faq-body">Non. Vous créez votre compte, choisissez un nom d'adresse, ajoutez logo, couleurs et produits — le tout en quelques minutes.</div></details>
+        <details class="faq-item"><summary>Puis-je être payé à la livraison ?</summary><div class="faq-body">Oui. Le paiement à la livraison est activé par défaut. Vous pouvez aussi activer la validation manuelle Mobile Money / virement avec preuve.</div></details>
+        <details class="faq-item"><summary>Que se passe-t-il si j'annule mon abonnement ?</summary><div class="faq-body">Vos données sont conservées. Votre boutique repasse en fonctionnalités limitées, vous pouvez la réactiver à tout moment.</div></details>
+        <div style="text-align:center;margin-top:1.2rem"><a class="btn btn-ghost" href="/faq">Voir toute la FAQ →</a></div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container-narrow" style="text-align:center">
+        <h2>Prêt à digitaliser votre commerce ?</h2>
+        <p class="lead">Rejoignez les commerçants de Kinshasa qui vendent déjà avec Adhicom.</p>
+        <a class="btn btn-accent btn-lg" href="/account/register">@heroCta →</a>
+    </div>
+</section>

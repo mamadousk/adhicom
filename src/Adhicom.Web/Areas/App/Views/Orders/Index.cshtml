@@ -1,0 +1,42 @@
+@model Adhicom.Web.ViewModels.OrderListItemViewModel
+@{
+    ViewData["Title"] = "Commandes — Adhicom";
+    var statuses = new[] { "Pending", "Confirmed", "Preparing", "ReadyToShip", "OutForDelivery", "Delivered", "Cancelled", "Refused", "Returned" };
+    string Label(string s) => Ui.OrderStatus(Enum.Parse<Adhicom.Domain.Common.OrderStatus>(s));
+}
+<div class="page-head"><div><p class="breadcrumb"><a href="/app">Tableau de bord</a> / Commandes</p><h1>Commandes <span class="muted">(@Model.TotalCount)</span></h1></div></div>
+<div class="chip-row" style="padding-left:0;padding-right:0;margin-bottom:.5rem;overflow-x:auto">
+    <a class="chip@(string.IsNullOrEmpty(Model.StatusFilter) ? " active" : "")" href="/app/orders">Toutes</a>
+    @foreach (var s in statuses)
+    {
+        <a class="chip@(string.Equals(Model.StatusFilter, s, StringComparison.OrdinalIgnoreCase) ? " active" : "")" href="/app/orders?status=@s">@Label(s)</a>
+    }
+</div>
+@if (Model.Orders.Count == 0)
+{
+    <div class="empty-state card"><p>Aucune commande pour ce filtre.</p></div>
+}
+else
+{
+    <div class="table-wrap card" style="padding:0"><table class="table">
+        <thead><tr><th>Commande</th><th>Client</th><th>Date</th><th>Articles</th><th>Total</th><th>Paiement</th><th>Statut</th></tr></thead>
+        <tbody>
+        @foreach (var o in Model.Orders)
+        {
+            <tr>
+                <td><a href="/app/orders/details/@o.Id"><strong>@o.OrderNumber</strong></a></td>
+                <td>@o.CustomerName<br /><span class="small muted">@o.CustomerPhone</span></td>
+                <td>@o.CreatedAtUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@(Model.ItemCounts.TryGetValue(o.Id, out var c) ? c : 0)</td>
+                <td><strong>@Ui.Money(o.Total, o.Currency)</strong></td>
+                <td><span class="badge @(o.PaymentStatus == PaymentStatus.Paid ? "badge-ok" : o.PaymentStatus == PaymentStatus.ToBeConfirmed ? "badge-warn" : "badge-neutral")">@Ui.PaymentStatus(o.PaymentStatus)</span></td>
+                <td><span class="badge @(o.Status == OrderStatus.Pending ? "badge-warn" : o.Status == OrderStatus.Delivered ? "badge-ok" : o.Status == OrderStatus.Cancelled || o.Status == OrderStatus.Refused ? "badge-danger" : "badge-info")">@Ui.OrderStatus(o.Status)</span></td>
+            </tr>
+        }
+        </tbody>
+    </table></div>
+    @if (Model.TotalPages > 1)
+    {
+        <ul class="pagination">@for (var i = 1; i <= Model.TotalPages; i++) { <li class="@(i == Model.Page ? "active" : "")"><a href="/app/orders?page=@i&status=@Model.StatusFilter">@i</a></li> }</ul>
+    }
+}

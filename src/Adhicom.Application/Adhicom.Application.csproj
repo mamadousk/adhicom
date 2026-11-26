@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Adhicom.Application</AssemblyName>
+    <RootNamespace>Adhicom.Application</RootNamespace>
+    <Description>Cas d'utilisation et contrats applicatifs d'Adhicom.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Adhicom.Domain\Adhicom.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

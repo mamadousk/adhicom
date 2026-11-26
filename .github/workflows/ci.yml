@@ -1,0 +1,60 @@
+name: CI — build, tests, schéma
+
+on:
+  push:
+    branches: [main, arena/**]
+  pull_request:
+    branches: [main]
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_NOLOGO: 1
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: adhicom
+          POSTGRES_PASSWORD: adhicom
+          POSTGRES_DB: adhicom_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U adhicom -d adhicom_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore Adhicom.sln
+
+      - name: Build (Release)
+        run: dotnet build Adhicom.sln -c Release --no-restore
+
+      - name: Unit + Security tests
+        run: dotnet test Adhicom.sln -c Release --no-build --filter "FullyQualifiedName!~IntegrationTests"
+
+      - name: Integration tests (HTTP réel, PostgreSQL)
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          ADHICOM_TEST_DB: "1"
+          ConnectionStrings__DefaultConnection: Host=127.0.0.1;Port=5432;Database=adhicom_test;Username=adhicom;Password=adhicom
+        run: dotnet test tests/Adhicom.IntegrationTests -c Release --no-build
+
+      - name: Vérifier l'absence de secrets évidents dans le dépôt
+        run: |
+          ! grep -rInE '(sk_live|api_secret|BEGIN PRIVATE KEY|password\s*=\s*["'"'"'][^"'"'"']{8,})' \
+            --exclude-dir=.git --exclude=ci.yml . || (echo 'Secret potentiel détecté'; exit 1)

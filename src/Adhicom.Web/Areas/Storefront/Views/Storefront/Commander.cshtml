@@ -1,0 +1,88 @@
+@model Adhicom.Web.ViewModels.CheckoutViewModel
+@{
+    var store = Model.Store;
+    var currency = Model.Currency;
+    var form = Model.Form;
+    ViewData["Title"] = $"Finaliser ma commande — {store.Name}";
+    var storeSlug = store.Slug;
+}
+<div style="max-width:1180px;margin:0 auto;padding:1.4rem 1.1rem">
+    <nav class="small muted" style="margin-bottom:.5rem"><a href="/storefront/@storeSlug/Panier" style="color:var(--shop-primary)">← Modifier le panier</a></nav>
+    <h1 style="color:var(--shop-primary);font-size:1.5rem;margin-bottom:1rem">Finaliser votre commande</h1>
+
+    @if (!ViewContext.ModelState.IsValid)
+    {
+        <div class="alert alert-error" role="alert"><strong>Veuillez corriger :</strong><div asp-validation-summary="All"></div></div>
+    }
+
+    <form method="post" action="/storefront/@storeSlug/Commander" class="two-col checkout-form" style="padding:0">
+        @Html.AntiForgeryToken()
+        <div>
+            <div class="card" style="margin-bottom:1rem">
+                <h2 style="font-size:1.05rem;margin-top:0">Vos coordonnées</h2>
+                <div class="form-grid" style="grid-template-columns:1fr">
+                    <div><label for="CustomerName">Nom complet *</label><input id="CustomerName" name="CustomerName" type="text" value="@form.CustomerName" required autocomplete="name" placeholder="Ex. Marie Kabeya" /><span class="field-error">@Html.ValidationMessageFor(m => m.Form.CustomerName)</span></div>
+                    <div class="row">
+                        <div><label for="CustomerPhone">Téléphone * (le livreur vous appellera)</label><input id="CustomerPhone" name="CustomerPhone" type="tel" value="@form.CustomerPhone" required autocomplete="tel" placeholder="+243 81 000 0000" /><span class="field-error">@Html.ValidationMessageFor(m => m.Form.CustomerPhone)</span></div>
+                        <div><label for="CustomerEmail">E-mail (facultatif)</label><input id="CustomerEmail" name="CustomerEmail" type="email" value="@form.CustomerEmail" autocomplete="email" placeholder="vous@exemple.com" /></div>
+                    </div>
+                    <div class="row">
+                        <div><label for="CustomerCity">Ville</label><input id="CustomerCity" name="CustomerCity" type="text" value="@form.CustomerCity" placeholder="Kinshasa" /></div>
+                        <div><label for="CustomerDistrict">Commune / Quartier</label><input id="CustomerDistrict" name="CustomerDistrict" type="text" value="@form.CustomerDistrict" placeholder="Gombe, Lemba..." /></div>
+                    </div>
+                    <div><label for="CustomerAddress">Adresse ou point de livraison</label><input id="CustomerAddress" name="CustomerAddress" type="text" value="@form.CustomerAddress" placeholder="Ex. Avenue du Commerce n°12, en face de..." /></div>
+                    <div><label for="CustomerInstructions">Instructions pour le livreur</label><textarea id="CustomerInstructions" name="CustomerInstructions" rows="2" placeholder="Ex. Appeler à l'arrivée, portail bleu">@form.CustomerInstructions</textarea></div>
+                </div>
+            </div>
+
+            @if (Model.ShippingMethods.Count > 0)
+            {
+                <fieldset class="card" style="margin-bottom:1rem">
+                    <legend style="font-size:1.05rem;font-weight:700;padding:0 .3rem">Mode de livraison</legend>
+                    @foreach (var m in Model.ShippingMethods)
+                    {
+                        var checkedAttr = form.ShippingMethodId == m.Id || (form.ShippingMethodId is null && m == Model.ShippingMethods.First());
+                        <label class="payment-option" style="margin-top:.45rem">
+                            <input type="radio" name="ShippingMethodId" value="@m.Id" @(checkedAttr ? "checked" : "") />
+                            <span><strong>@m.Name</strong><br /><span class="small muted">@(m.Type switch { Adhicom.Domain.Common.ShippingMethodType.Flat => Ui.Money(m.Price, currency) + (m.FreeOverAmount is { } fo ? $" — gratuit dès {Ui.Money(fo, currency)}" : ""), Adhicom.Domain.Common.ShippingMethodType.Free => "Gratuite", Adhicom.Domain.Common.ShippingMethodType.Pickup => "Retrait en boutique", Adhicom.Domain.Common.ShippingMethodType.Negotiated => "Frais à convenir avec le commerçant", _ => "" })@(m.EstimatedDelivery is null ? "" : $" · {m.EstimatedDelivery}")</span></span>
+                        </label>
+                    }
+                </fieldset>
+            }
+
+            <fieldset class="card">
+                <legend style="font-size:1.05rem;font-weight:700;padding:0 .3rem">Moyen de paiement</legend>
+                @foreach (var cfg in Model.PaymentConfigurations)
+                {
+                    var checkedAttr = form.PaymentMethod == cfg.Method;
+                    <label class="payment-option" style="margin-top:.45rem">
+                        <input type="radio" name="PaymentMethod" value="@cfg.Method" @(checkedAttr ? "checked" : "") required />
+                        <span>
+                            <strong>@Ui.PaymentMethod(cfg.Method)</strong>
+                            @if (!string.IsNullOrWhiteSpace(cfg.PublicInstructions)) { <br /><span class="small muted">@cfg.PublicInstructions</span> }
+                            @if (!string.IsNullOrWhiteSpace(cfg.PublicMerchantCode)) { <br /><span class="small muted">Réf. : @cfg.PublicMerchantCode</span> }
+                        </span>
+                    </label>
+                }
+                @if (Model.PaymentConfigurations.Count == 0)
+                {
+                    <p class="small muted">Le commerçant n'a pas encore configuré de moyen de paiement. Commandez quand même — il vous contactera.</p>
+                }
+            </fieldset>
+        </div>
+
+        <aside class="summary-box">
+            <h2 style="font-size:1rem;margin-top:0">Récapitulatif</h2>
+            @foreach (var line in Model.Lines)
+            {
+                <div class="summary-row"><span>@line.Name @(line.VariantName is null ? "" : $"({line.VariantName})") × @line.Quantity</span><span>@Ui.Money(line.LineTotal, currency)</span></div>
+            }
+            <div class="summary-row"><span>Sous-total</span><span>@Ui.Money(Model.SubTotal, currency)</span></div>
+            <div class="summary-row"><span>Livraison</span><span class="small muted">selon le mode choisi</span></div>
+            <div class="summary-row summary-total"><span>Total estimé</span><span>@Ui.Money(Model.SubTotal, currency)</span></div>
+            @if (Model.DeliveryInfo is not null) { <p class="small muted" style="margin:.4rem 0 0">🚚 @Model.DeliveryInfo</p> }
+            <button class="cart-btn" type="submit" style="width:100%;justify-content:center;font-size:1rem;padding:.8rem;margin-top:.8rem">✅ Confirmer la commande</button>
+            <p class="small muted" style="margin-top:.5rem;text-align:center">En commandant, vous acceptez nos conditions. Le commerçant confirme la commande et le paiement.</p>
+        </aside>
+    </form>
+</div>

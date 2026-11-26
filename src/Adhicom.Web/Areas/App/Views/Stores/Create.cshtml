@@ -1,0 +1,25 @@
+@model Adhicom.Web.ViewModels.CreateStoreViewModel
+@{ ViewData["Title"] = "Créer ma boutique — Adhicom"; }
+<div class="page-head"><div><p class="breadcrumb"><a href="/app">Tableau de bord</a> / Nouvelle boutique</p><h1>Créons votre boutique ✨</h1><p class="muted">Renseignez les informations de votre commerce. Vous pourrez tout modifier ensuite.</p></div></div>
+<form method="post" class="card" style="max-width:720px">
+    @Html.AntiForgeryToken()
+    @if (!ViewContext.ModelState.IsValid) { <div class="validation-summary"><strong>Merci de corriger :</strong><div asp-validation-summary="All"></div></div> }
+    <div class="form-grid">
+        <div class="form-group full"><label asp-for="Name"></label><input asp-for="Name" type="text" placeholder="Ex. Fashion House" autofocus /><span class="field-error" asp-validation-for="Name"></span></div>
+        <div class="form-group full">
+            <label asp-for="RequestedSlug"></label>
+            <div style="display:flex;align-items:stretch"><input asp-for="RequestedSlug" id="RequestedSlug" type="text" placeholder="fashionhouse" style="border-radius:10px 0 0 10px" pattern="[a-z0-9]([a-z0-9-]*[a-z0-9])?" /><span style="background:var(--brand-50);border:1px solid var(--line);border-left:none;border-radius:0 10px 10px 0;padding:0 .8rem;display:flex;align-items:center;color:var(--muted)">.adhicom.com</span></div>
+            <p class="form-hint" id="slug-hint"></p>
+            <span class="field-error" asp-validation-for="RequestedSlug"></span>
+        </div>
+        <div class="form-group full"><label asp-for="Description"></label><textarea asp-for="Description" rows="2" placeholder="Mode africaine contemporaine — livrée à Kinshasa et partout en RDC"></textarea></div>
+        <div class="form-group"><label asp-for="BusinessCategory"></label><select asp-for="BusinessCategory"><option value="">— Choisir —</option><option>Mode et vêtements</option><option>Sneakers et accessoires</option><option>Électronique et high-tech</option><option>Beauté et cosmétiques</option><option>Alimentation et épicerie</option><option>Bricolage et maison</option><option>Santé et bien-être</option><option>Boutique généraliste</option><option>Autre</option></select></div>
+        <div class="form-group"><label asp-for="Country"></label><select asp-for="Country"><option value="CD">RD Congo</option><option value="CG">Congo-Brazzaville</option><option value="CM">Cameroun</option><option value="CI">Côte d'Ivoire</option><option value="SN">Sénégal</option><option value="FR">France</option><option value="BE">Belgique</option></select></div>
+        <div class="form-group"><label asp-for="City"></label><input asp-for="City" type="text" placeholder="Kinshasa" /><span class="field-error" asp-validation-for="City"></span></div>
+        <div class="form-group"><label asp-for="Address"></label><input asp-for="Address" type="text" placeholder="Avenue de la Justice, Gombe" /></div>
+        <div class="form-group"><label asp-for="WhatsappNumber"></label><input asp-for="WhatsappNumber" type="tel" placeholder="+243 99 000 0000" /><span class="field-error" asp-validation-for="WhatsappNumber"></span></div>
+        <div class="form-group"><label asp-for="BusinessEmail"></label><input asp-for="BusinessEmail" type="email" placeholder="contact@maboutique.com" /></div>
+    </div>
+    <button class="btn btn-accent btn-lg" type="submit">Créer ma boutique →</button>
+    <p class="small muted" style="margin-top:.6rem">Vous pourrez ensuite ajouter logo, couleurs, produits et modes de paiement.</p>
+</form>
