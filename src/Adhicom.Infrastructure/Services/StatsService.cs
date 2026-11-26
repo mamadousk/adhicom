@@ -76,7 +76,7 @@ public sealed class StatsService : IStatsService
         var gmvMonth = await _db.Orders.AsNoTracking()
             .Where(o => o.CreatedAtUtc >= monthStart && (o.PaymentStatus == PaymentStatus.Paid || o.Status == OrderStatus.Delivered))
             .SumAsync(o => (decimal?)o.Total, ct) ?? 0m;
-        var grace = await _db.Subscriptions.CountAsync(s => s.Status == Adhicom.Domain.Subscriptions.SubscriptionStatus.Grace, ct);
+        var grace = await _db.Subscriptions.CountAsync(s => s.Status == SubscriptionStatus.Grace, ct);
 
         var raw = await _db.Orders.AsNoTracking()
             .Where(o => o.CreatedAtUtc >= since)
@@ -108,7 +108,7 @@ public sealed class StatsService : IStatsService
             var dayRows = rows.Where(o => DateOnly.FromDateTime(o.CreatedAtUtc) == d).ToList();
             result.Add(new SalesReportRow(d,
                 dayRows.Count,
-                dayRows.Where(CountsAsRevenue).Sum(o => o.Total),
+                dayRows.Where(o => o.PaymentStatus == PaymentStatus.Paid || o.Status == OrderStatus.Delivered).Sum(o => o.Total),
                 dayRows.Count(o => o.Status == OrderStatus.Delivered),
                 dayRows.Count(o => o.Status == OrderStatus.Cancelled || o.Status == OrderStatus.Refused)));
         }

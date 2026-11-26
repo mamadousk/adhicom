@@ -112,9 +112,10 @@ public enum WhatsAppOrderMode
 /// <summary>Type de méthode de livraison.</summary>
 public enum ShippingMethodType
 {
-    Flat = 0,   // Forfait fixe
-    Free = 1,   // Gratuite
-    Pickup = 2  // Retrait sur place
+    Flat = 0,       // Forfait fixe
+    Free = 1,       // Gratuite
+    Pickup = 2,     // Retrait sur place
+    Negotiated = 3  // À négocier avec le client (frais fixés manuellement)
 }
 
 /// <summary>Type d'écriture de stock.</summary>
