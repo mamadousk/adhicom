@@ -1,0 +1,33 @@
+@model Adhicom.Web.ViewModels.ConfirmationViewModel
+@{
+    var order = Model.Order;
+    var store = Model.Store;
+    ViewData["Title"] = $"Commande {order.OrderNumber} confirmée — {store.Name}";
+}
+<div class="confirm-box">
+    <div style="font-size:3rem">✅</div>
+    <h1 style="color:var(--shop-primary);font-size:1.5rem;margin:.4rem 0">Merci, @order.CustomerName !</h1>
+    <p class="muted" style="margin:0">Votre commande est enregistrée. Le commerçant va la confirmer — vous serez contacté·e au <strong>@order.CustomerPhone</strong>.</p>
+    <div class="confirm-number" data-copy="@order.OrderNumber" title="Cliquez pour copier">@order.OrderNumber</div>
+    <p class="small muted">Conservez ce numéro — il suivra votre commande.</p>
+
+    <div class="card" style="text-align:left;margin:1.2rem 0">
+        <h2 style="font-size:1rem;margin-top:0">Détails de la commande</h2>
+        @foreach (var item in order.Items)
+        {
+            <div class="summary-row"><span>@item.ProductName @(item.VariantName is null ? "" : $"({item.VariantName})") × @item.Quantity</span><span>@Ui.Money(item.UnitPrice * item.Quantity, order.Currency)</span></div>
+        }
+        <div class="summary-row"><span>Sous-total</span><span>@Ui.Money(order.SubTotal, order.Currency)</span></div>
+        <div class="summary-row"><span>Livraison</span><span>@Ui.Money(order.ShippingFee, order.Currency)</span></div>
+        <div class="summary-row summary-total"><span>Total</span><span>@Ui.Money(order.Total, order.Currency)</span></div>
+        <p class="small muted" style="margin:.5rem 0 0">Paiement : @Ui.PaymentMethod(order.PaymentMethod) — @Ui.PaymentStatus(order.PaymentStatus)</p>
+    </div>
+
+    <div style="display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap">
+        @if (Model.WhatsAppUrl is not null)
+        {
+            <a class="cart-btn" href="@Model.WhatsAppUrl" target="_blank" rel="noopener">💬 Contacter la boutique sur WhatsApp</a>
+        }
+        <a class="btn btn-outline" href="/storefront/@store.Slug">← Retour à la boutique</a>
+    </div>
+</div>

@@ -1,0 +1,32 @@
+@model Adhicom.Domain.Orders.Customer
+@{
+    ViewData["Title"] = "Fiche client — Adhicom";
+    var orders = ViewData["Orders"] as List<Adhicom.Domain.Orders.Order> ?? new();
+}
+<div class="page-head"><div><p class="breadcrumb"><a href="/app/customers">Clients</a> / @Model.Name</p><h1>@Model.Name</h1></div><a class="btn btn-outline btn-sm" href="tel:@Model.Phone">📞 @Model.Phone</a></div>
+<div class="detail-grid">
+    <div class="card">
+        <h3 style="font-size:1rem">Coordonnées</h3>
+        <p style="margin:0">📞 <a href="tel:@Model.Phone">@Model.Phone</a><br />
+            @if (Model.Email is not null) { <text>✉️ @Model.Email<br /></text> }
+            @if (Model.Address is not null || Model.City is not null) { <text>📍 @Model.Address, @Model.City<br /></text> }
+        </p>
+        <div class="kpi-grid" style="margin-top:1rem">
+            <div class="card-kpi kpi-brand"><div class="kpi-label">Commandes</div><div class="kpi-value">@Model.TotalOrders</div></div>
+            <div class="card-kpi kpi-accent"><div class="kpi-label">Total acheté</div><div class="kpi-value">@Ui.Money(Model.TotalSpent)</div></div>
+        </div>
+    </div>
+    <div class="card">
+        <h3 style="font-size:1rem">Historique (@orders.Count)</h3>
+        @if (orders.Count == 0) { <p class="muted">Aucune commande.</p> }
+        <div class="table-wrap"><table class="table">
+            <thead><tr><th>Commande</th><th>Date</th><th>Total</th><th>Statut</th></tr></thead>
+            <tbody>
+            @foreach (var o in orders)
+            {
+                <tr><td><a href="/app/orders/details/@o.Id">@o.OrderNumber</a></td><td>@o.CreatedAtUtc.ToString("dd/MM/yyyy")</td><td>@Ui.Money(o.Total, o.Currency)</td><td><span class="badge badge-neutral">@Ui.OrderStatus(o.Status)</span></td></tr>
+            }
+            </tbody>
+        </table></div>
+    </div>
+</div>

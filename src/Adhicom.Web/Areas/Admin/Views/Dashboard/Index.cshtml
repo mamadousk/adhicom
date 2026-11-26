@@ -1,0 +1,45 @@
+@model Adhicom.Web.ViewModels.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Vue d'ensemble — Administration Adhicom";
+    var s = Model.Stats;
+    var max = s.SalesLast30Days.Count == 0 ? 1 : s.SalesLast30Days.Max(p => p.Revenue);
+    if (max <= 0) { max = 1; }
+}
+<div class="page-head"><div><p class="breadcrumb">Administration</p><h1>Vue d'ensemble de la plateforme</h1><p class="muted">Adhil &amp; Co — pilotage global Adhicom.</p></div></div>
+
+<div class="kpi-grid">
+    <div class="card-kpi kpi-brand"><div class="kpi-label">Boutiques</div><div class="kpi-value">@s.TotalStores</div><div class="kpi-sub">@s.ActiveStores active(s) · @s.SuspendedStores suspendue(s)</div></div>
+    <div class="card-kpi kpi-info"><div class="kpi-label">Utilisateurs</div><div class="kpi-value">@s.TotalUsers</div></div>
+    <div class="card-kpi kpi-accent"><div class="kpi-label">Commandes du jour</div><div class="kpi-value">@s.OrdersToday</div></div>
+    <div class="card-kpi kpi-ok"><div class="kpi-label">GMV du mois (payé)</div><div class="kpi-value">@Ui.Money(s.GmvMonthPaid)</div><div class="kpi-sub">Volume d'affaires encaissé, toutes boutiques</div></div>
+    <div class="card-kpi kpi-warn"><div class="kpi-label">Abonnements en grâce</div><div class="kpi-value">@s.SubscriptionsInGrace</div><div class="kpi-sub">À relancer avant limitation</div></div>
+</div>
+
+<div class="card">
+    <div class="card-head"><h2>Ventes des 30 derniers jours</h2></div>
+    @if (s.SalesLast30Days.Count == 0)
+    {
+        <p class="muted">Pas encore de données.</p>
+    }
+    else
+    {
+        <div class="spark-bars" role="img" aria-label="Graphique des revenus des 30 derniers jours">
+            @foreach (var p in s.SalesLast30Days)
+            {
+                var h = (int)Math.Round(100.0 * (double)(p.Revenue / max));
+                if (h < 2 && p.Revenue > 0) { h = 2; }
+                <div class="spark-col" title="@p.Date.ToString("dd/MM") — @Ui.Money(p.Revenue) (@p.Orders cmd)">
+                    <div class="spark-bar bar-brand" style="height:@(h)%"></div>
+                    <span class="spark-day">@p.Date.ToString("dd/MM")</span>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<div class="quick-links" style="margin-top:1rem">
+    <a class="quick-link" href="/admin/stores?status=PendingValidation">🛂 Boutiques à valider</a>
+    <a class="quick-link" href="/admin/subscriptions?status=Grace">⏳ Abonnements en grâce</a>
+    <a class="quick-link" href="/admin/reports">🚩 Signalements</a>
+    <a class="quick-link" href="/admin/support">💬 Support</a>
+</div>

@@ -1,0 +1,47 @@
+@model Adhicom.Web.ViewModels.CategoryFormViewModel
+@{
+    ViewData["Title"] = "Catégories — Adhicom";
+    var categories = ViewData["Categories"] as List<Adhicom.Web.ViewModels.CategoryListItemViewModel> ?? new();
+}
+<div class="page-head"><div><p class="breadcrumb"><a href="/app">Tableau de bord</a> / Catégories</p><h1>Catégories</h1></div></div>
+<div class="detail-grid">
+    <div class="card">
+        <h3 style="font-size:1.05rem">Vos catégories</h3>
+        @if (!categories.Any())
+        {
+            <p class="muted">Aucune catégorie pour l'instant.</p>
+        }
+        else
+        {
+            <div class="table-wrap"><table class="table">
+                <thead><tr><th>Nom</th><th>Produits</th><th>Ordre</th><th>Active</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var item in categories)
+                {
+                    <tr>
+                        <td><strong>@item.Category.Name</strong>@if (item.Category.Description != null) { <br /><span class="small muted">@item.Category.Description</span> }</td>
+                        <td>@item.ProductCount</td>
+                        <td>@item.Category.DisplayOrder</td>
+                        <td>@(item.Category.IsActive ? "✅" : "—")</td>
+                        <td style="white-space:nowrap">
+                            <button class="btn btn-ghost btn-sm" data-copy="@item.Category.Name" type="button">Copier</button>
+                            <form class="inline-form" method="post" action="/app/categories/delete/@item.Category.Id" data-confirm="Supprimer la catégorie « @item.Category.Name » ?">@Html.AntiForgeryToken()<button class="btn btn-ghost btn-sm" type="submit">🗑</button></form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table></div>
+            <p class="small muted" style="margin-top:.5rem">Pour modifier une catégorie, supprimez-la et recréez-la (identique). Les produits gardent leur visibilité.</p>
+        }
+    </div>
+    <form method="post" action="/app/categories/create" class="card">
+        @Html.AntiForgeryToken()
+        <h3 style="font-size:1.05rem">Ajouter une catégorie</h3>
+        @if (!ViewContext.ModelState.IsValid) { <div class="validation-summary"><div asp-validation-summary="All"></div></div> }
+        <div class="form-group"><label asp-for="Name"></label><input asp-for="Name" type="text" placeholder="Ex. Mode femme" /><span class="field-error" asp-validation-for="Name"></span></div>
+        <div class="form-group"><label asp-for="Description"></label><input asp-for="Description" type="text" placeholder="Description courte (optionnelle)" /></div>
+        <div class="form-group"><label asp-for="DisplayOrder"></label><input asp-for="DisplayOrder" type="number" min="0" /></div>
+        <div class="form-group"><label style="display:flex;align-items:center;gap:.5rem;font-weight:500"><input asp-for="IsActive" type="checkbox" style="width:auto" /> Active (visible sur la boutique)</label></div>
+        <button class="btn btn-primary" type="submit">Ajouter la catégorie</button>
+    </form>
+</div>

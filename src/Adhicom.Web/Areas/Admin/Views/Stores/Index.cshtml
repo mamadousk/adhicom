@@ -1,0 +1,37 @@
+@model Adhicom.Web.ViewModels.AdminStoresViewModel
+@{
+    ViewData["Title"] = "Boutiques — Administration Adhicom";
+    var statuses = new[] { "Draft", "PendingValidation", "Active", "Suspended", "Disabled", "Closed" };
+    string Label(string s) => Ui.StoreStatus(Enum.Parse<StoreStatus>(s));
+}
+<div class="page-head"><div><p class="breadcrumb"><a href="/admin">Administration</a> / Boutiques</p><h1>Boutiques <span class="muted">(@Model.Stores.Count)</span></h1></div></div>
+
+<form method="get" class="card card-flat" style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem">
+    <input type="search" name="search" value="@Model.Search" placeholder="Nom, sous-domaine ou e-mail..." style="max-width:320px" />
+    <select name="status" data-auto-submit="1">
+        <option value="">Tous les statuts</option>
+        @foreach (var s in statuses)
+        {
+            <option value="@s" selected="@(string.Equals(Model.StatusFilter, s, StringComparison.OrdinalIgnoreCase) ? "selected" : null)">@Label(s)</option>
+        }
+    </select>
+    <button class="btn btn-outline btn-sm" type="submit">Filtrer</button>
+</form>
+
+<div class="table-wrap card" style="padding:0"><table class="table">
+    <thead><tr><th>Boutique</th><th>Propriétaire</th><th>Commandes</th><th>Créée le</th><th>Statut</th><th></th></tr></thead>
+    <tbody>
+    @if (Model.Stores.Count == 0) { <tr><td colspan="6" class="muted">Aucune boutique ne correspond.</td></tr> }
+    @foreach (var s in Model.Stores)
+    {
+        <tr>
+            <td><strong>@s.Name</strong><br /><span class="small muted">@(s.Slug).adhicom.com</span></td>
+            <td>@s.OwnerEmail</td>
+            <td>@s.OrderCount</td>
+            <td>@s.CreatedAtUtc.ToString("dd/MM/yyyy")</td>
+            <td><span class="badge @(s.Status == StoreStatus.Active ? "badge-ok" : s.Status == StoreStatus.Suspended || s.Status == StoreStatus.Closed ? "badge-danger" : "badge-warn")">@Ui.StoreStatus(s.Status)</span></td>
+            <td><a class="btn btn-ghost btn-sm" href="/admin/stores/details/@s.Id">Ouvrir →</a></td>
+        </tr>
+    }
+    </tbody>
+</table></div>

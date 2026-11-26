@@ -1,0 +1,40 @@
+@model Adhicom.Web.ViewModels.SupportTicketViewModel
+@{ ViewData["Title"] = "Support — Administration Adhicom"; }
+<div class="page-head"><div><p class="breadcrumb"><a href="/admin">Administration</a> / Support</p><h1>Support commerçants <span class="muted">(@Model.OpenTickets.Count ouverts)</span></h1></div></div>
+
+<h2 style="font-size:1.05rem;color:var(--brand-700)">Ouverts / en cours</h2>
+@if (Model.OpenTickets.Count == 0)
+{
+    <div class="empty-state card"><p>Aucun ticket ouvert.</p></div>
+}
+else
+{
+    @foreach (var t in Model.OpenTickets)
+    {
+        <article class="card" style="margin-bottom:.75rem;border-left:4px solid var(--accent)">
+            <div style="display:flex;justify-content:space-between;gap:.8rem;flex-wrap:wrap">
+                <div>
+                    <strong>@t.Subject</strong> <span class="badge badge-warn">@Ui.TicketStatus(t.Status)</span>
+                    <p class="small muted" style="margin:.15rem 0">@t.CreatedAtUtc.ToString("dd/MM/yyyy HH:mm") UTC@(t.RequesterName is null && t.RequesterEmail is null ? "" : $" · {t.RequesterName ?? t.RequesterEmail}")@(t.StoreId is null ? "" : $" · boutique {t.StoreId}")</p>
+                    <p style="margin:.25rem 0 0;white-space:pre-wrap">@t.Message</p>
+                </div>
+            </div>
+            <form method="post" action="/admin/support/respond/@t.Id" style="margin-top:.6rem">
+                @Html.AntiForgeryToken()
+                <textarea name="response" rows="2" required placeholder="Votre réponse au commerçant..." style="width:100%"></textarea>
+                <button class="btn btn-primary btn-sm" type="submit" style="margin-top:.4rem">Répondre et résoudre</button>
+            </form>
+        </article>
+    }
+}
+
+<h2 style="font-size:1.05rem;color:var(--muted);margin-top:1.2rem">Résolus / fermés</h2>
+@foreach (var t in Model.ClosedTickets)
+{
+    <article class="card" style="margin-bottom:.5rem;opacity:.75">
+        <strong>@t.Subject</strong> <span class="badge badge-ok">@Ui.TicketStatus(t.Status)</span>
+        <p class="small muted" style="margin:.15rem 0">@t.UpdatedAtUtc?.ToString("dd/MM/yyyy HH:mm") UTC@(t.RequesterEmail is null ? "" : $" · {t.RequesterEmail}")</p>
+        @if (t.AdminResponse is not null) { <p class="small" style="margin:.25rem 0 0"><strong>Réponse :</strong> @t.AdminResponse</p> }
+        <form class="inline-form" method="post" action="/admin/support/close/@t.Id" style="margin-top:.4rem">@Html.AntiForgeryToken()<button class="btn btn-ghost btn-sm" type="submit">Fermer définitivement</button></form>
+    </article>
+}

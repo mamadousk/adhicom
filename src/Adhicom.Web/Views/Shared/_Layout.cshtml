@@ -1,0 +1,93 @@
+@{
+    var title = ViewData["Title"] as string ?? "Adhicom — Votre boutique en ligne en quelques minutes";
+    var description = ViewData["MetaDescription"] as string ?? "Adhicom permet aux commerçants de RDC et d'Afrique francophone de créer leur boutique en ligne : produits, commandes, livraison, paiement à la livraison et Mobile Money.";
+}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@title</title>
+    <meta name="description" content="@description" />
+    <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
+    <link rel="canonical" href="@($"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}".ToLowerInvariant())" />
+    <meta property="og:site_name" content="Adhicom" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="@title" />
+    <meta property="og:description" content="@description" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="stylesheet" href="/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a class="logo" href="/" aria-label="Adhicom — accueil">
+                <span class="logo-mark">A</span>
+                <span>Adhicom<small>par Adhil &amp; Co</small></span>
+            </a>
+            <nav class="nav-links" aria-label="Navigation principale">
+                <a href="/fonctionnalites">Fonctionnalités</a>
+                <a href="/tarifs">Tarifs</a>
+                <a href="/faq">FAQ</a>
+                <a href="/contact">Contact</a>
+            </nav>
+            <div class="nav-actions">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a class="btn btn-ghost hide-mobile" href="/app">Mon tableau de bord</a>
+                    @if (User.IsInRole("SuperAdmin")) { <a class="btn btn-ghost hide-mobile" href="/admin">Administration</a> }
+                }
+                else
+                {
+                    <a class="btn btn-ghost hide-mobile" href="/account/login">Se connecter</a>
+                    <a class="btn btn-primary" href="/account/register">Créer ma boutique</a>
+                }
+                <button class="menu-toggle" type="button" aria-label="Menu">☰</button>
+            </div>
+        </div>
+        <div class="mobile-menu" id="mobile-menu">
+            <a href="/fonctionnalites">Fonctionnalités</a>
+            <a href="/tarifs">Tarifs</a>
+            <a href="/faq">FAQ</a>
+            <a href="/contact">Contact</a>
+            <a href="/account/login">Se connecter</a>
+            <a href="/account/register">Créer ma boutique</a>
+        </div>
+    </header>
+
+    <main>
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <div class="footer-logo"><span class="logo-mark" style="background:#F4D793;color:#0F4C3A">A</span> Adhicom</div>
+                    <p class="small" style="margin-top:.6rem">Une plateforme. Votre boutique. Votre commerce.<br />Développé et exploité par <strong>Adhil &amp; Co</strong> — Kinshasa, RDC.</p>
+                </div>
+                <div>
+                    <strong style="color:#fff">Produit</strong>
+                    <p class="small"><a href="/fonctionnalites">Fonctionnalités</a><br /><a href="/tarifs">Tarifs &amp; plans</a><br /><a href="/faq">FAQ</a></p>
+                </div>
+                <div>
+                    <strong style="color:#fff">Entreprise</strong>
+                    <p class="small"><a href="/contact">Contact</a><br /><a href="mailto:support@adhicom.com">support@adhicom.com</a></p>
+                </div>
+                <div>
+                    <strong style="color:#fff">Légal</strong>
+                    <p class="small"><a href="/cgu">Conditions générales</a><br /><a href="/confidentialite">Politique de confidentialité</a></p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>© @DateTime.UtcNow.Year Adhicom — Adhil &amp; Co. Tous droits réservés.</span>
+                <span>Made for RDC &amp; Afrique francophone 🇨🇩</span>
+            </div>
+        </div>
+    </footer>
+
+    <partial name="_Toast" />
+    <script src="/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

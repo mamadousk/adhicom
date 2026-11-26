@@ -1,0 +1,32 @@
+@{
+    ViewData["Title"] = "Moyens de paiement — Adhicom";
+    var methods = ViewData["Methods"] as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+}
+<div class="page-head"><div><p class="breadcrumb"><a href="/app/settings">Paramètres</a> / Paiements</p><h1>Moyens de paiement</h1><p class="muted">Activez les modes acceptés par votre boutique. Les paiements manuels sont validés par vous dans le tableau de bord.</p></div></div>
+
+@if (!methods.Any())
+{
+    <div class="empty-state card"><p>Aucune configuration disponible.</p></div>
+}
+@foreach (var row in methods)
+{
+    <form method="post" action="/app/settings/payments/Update" class="card" style="display:flex;gap:1rem;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin-bottom:.75rem">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="method" value="@row.Config.Method" />
+        <div style="flex:1 1 320px">
+            <h3 style="font-size:1.02rem;margin:0 0 .2rem">@row.Title</h3>
+            <p class="small muted" style="margin:0 0 .5rem">@row.Description</p>
+            <div class="form-grid" style="grid-template-columns:1fr 1fr">
+                <div class="form-group" style="margin:0"><label class="small">Instructions publiques (affichées au client)</label><input type="text" name="publicInstructions" value="@row.Config.PublicInstructions" placeholder="Ex. M-Pesa au 082 XXX XXXX, référence = numéro de commande" /></div>
+                <div class="form-group" style="margin:0"><label class="small">Code / identifiant marchand (facultatif)</label><input type="text" name="publicMerchantCode" value="@row.Config.PublicMerchantCode" placeholder="Ex. Boutique Fashion House ou compte" /></div>
+            </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.5rem;align-items:flex-end">
+            <label class="switch" style="display:flex;align-items:center;gap:.5rem;font-weight:600;cursor:pointer">
+                <input type="checkbox" name="enabled" value="true" @(row.Config.IsEnabled ? "checked" : "") style="width:auto;transform:scale(1.3)" /> @(row.Config.IsEnabled ? "Activé" : "Désactivé")
+            </label>
+            <button class="btn btn-primary btn-sm" type="submit">Enregistrer</button>
+        </div>
+    </form>
+}
+<div class="alert alert-info small">Intégration Mobile Money automatisée : disponible après signature avec le prestataire choisi et KYC complet — les fonds sont versés <strong>directement au marchand</strong> ; Adhicom ne collecte pas vos paiements.</div>

@@ -1,0 +1,83 @@
+@{
+    var title = ViewData["Title"] as string ?? "Tableau de bord — Adhicom";
+    var currentStore = ViewData["CurrentStore"] as Adhicom.Domain.Stores.Store;
+    var myStores = ViewData["MyStores"] as IReadOnlyList<Adhicom.Domain.Stores.Store> ?? new List<Adhicom.Domain.Stores.Store>();
+    var unread = ViewData["UnreadNotifications"] as int? ?? 0;
+    var currentPath = Context.Request.Path.Value ?? "";
+    string Active(string prefix) => currentPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>@title</title>
+    <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="/css/app.css" />
+</head>
+<body class="app-shell">
+    <aside class="sidebar" aria-label="Navigation du tableau de bord">
+        <a class="logo" href="/app"><span class="logo-mark" style="background:#F4D793;color:#0F4C3A">A</span><span>Adhicom<small>Espace commerçant</small></span></a>
+
+        @if (myStores.Count > 0)
+        {
+            <form method="post" action="/app/stores/select" class="store-switcher">
+                @Html.AntiForgeryToken()
+                <label class="small" style="color:#9FC6B2;margin-bottom:.3rem" for="active-store">Boutique active</label>
+                <select id="active-store" name="id" data-auto-submit="1">
+                    @foreach (var s in myStores)
+                    {
+                        <option value="@s.Id" selected="@(currentStore?.Id == s.Id ? "selected" : null)">@s.Name (@s.Slug)</option>
+                    }
+                </select>
+            </form>
+        }
+
+        <div class="sidebar-section">Pilotage</div>
+        <a class="sidebar-link @(currentPath == "/app" || currentPath == "/app/" ? "active" : "")" href="/app">📊 Tableau de bord</a>
+        <a class="sidebar-link @Active("/app/orders")" href="/app/orders">🧾 Commandes</a>
+        <a class="sidebar-link @Active("/app/products")" href="/app/products">📦 Produits</a>
+        <a class="sidebar-link @Active("/app/categories")" href="/app/categories">🏷️ Catégories</a>
+        <a class="sidebar-link @Active("/app/customers")" href="/app/customers">👥 Clients</a>
+
+        <div class="sidebar-section">Votre boutique</div>
+        <a class="sidebar-link @Active("/app/settings")" href="/app/settings">🎨 Apparence &amp; profil</a>
+        <a class="sidebar-link @Active("/app/settings/shipping")" href="/app/settings/shipping">🚚 Livraison</a>
+        <a class="sidebar-link @Active("/app/settings/payments")" href="/app/settings/payments">💵 Paiements</a>
+        <a class="sidebar-link @Active("/app/onboarding")" href="/app/onboarding">🚀 Configuration guidée</a>
+        @if (currentStore is not null)
+        {
+            <a class="sidebar-link" href="/storefront/@currentStore.Slug" target="_blank" rel="noopener">🌐 Voir ma boutique ↗</a>
+        }
+
+        <div class="sidebar-section">Compte</div>
+        <a class="sidebar-link @Active("/app/stores")" href="/app/stores">🏪 Mes boutiques</a>
+        <a class="sidebar-link @Active("/app/subscription")" href="/app/subscription">⭐ Abonnement</a>
+        <a class="sidebar-link @Active("/app/notifications")" href="/app/notifications">🔔 Notifications @if (unread > 0) { <span class="count">@unread</span> }</a>
+
+        <div style="margin-top:auto;padding-top:1.2rem">
+            <form method="post" action="/account/logout">@Html.AntiForgeryToken()<button class="sidebar-link" type="submit" style="width:100%;text-align:left;background:none;border:none;cursor:pointer">🚪 Se déconnecter</button></form>
+        </div>
+    </aside>
+
+    <div class="app-main">
+        <header class="topbar">
+            <span class="topbar-title">@(currentStore?.Name ?? "Adhicom")</span>
+            <div style="display:flex;gap:.6rem;align-items:center">
+                @if (currentStore?.Status == Adhicom.Domain.Common.StoreStatus.Active) { <span class="badge badge-ok" title="Boutique en ligne">● En ligne</span> }
+                else if (currentStore is not null) { <span class="badge badge-warn">@Ui.StoreStatus(currentStore.Status)</span> }
+                <a class="icon-btn" href="/app/notifications" aria-label="Notifications">🔔 @if (unread > 0) { <span class="dot">@unread</span> }</a>
+            </div>
+        </header>
+        <main class="app-content">
+            @RenderBody()
+        </main>
+    </div>
+
+    <partial name="~/Views/Shared/_Toast.cshtml" />
+    <script src="/js/site.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,54 @@
+# Adhicom — pile locale / petite production (VPS).
+# Production cible : reverse-proxy Nginx devant le conteneur web + PostgreSQL managé ou local.
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: adhicom
+      POSTGRES_USER: adhicom
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Définir POSTGRES_PASSWORD dans un fichier .env (jamais commité)}
+    volumes:
+      - adhicom-db:/var/lib/postgresql/data
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U adhicom -d adhicom"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  web:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=adhicom;Username=adhicom;Password=${POSTGRES_PASSWORD:?}
+      AdminSeed__Email: ${ADMIN_EMAIL:-admin@adhicom.com}
+      AdminSeed__Password: ${ADMIN_PASSWORD:?Définir ADMIN_PASSWORD dans .env}
+      Adhicom__BaseDomain: ${BASE_DOMAIN:-adhicom.com}
+      Adhicom__SupportEmail: ${SUPPORT_EMAIL:-support@adhicom.com}
+      Smtp__Host: ${SMTP_HOST:-}
+      Smtp__Port: ${SMTP_PORT:-587}
+      Smtp__User: ${SMTP_USER:-}
+      Smtp__Password: ${SMTP_PASSWORD:-}
+      Smtp__From: ${SMTP_FROM:-Adhicom <no-reply@adhicom.com>}
+      Seeds__DemoData: "false"
+      Payments__moko__Secret: ${MOKO_SECRET:-}
+      Payments__nomba__Secret: ${NOMBA_SECRET:-}
+      Payments__optgateway__Secret: ${OPTGATEWAY_SECRET:-}
+      Payments__malipo__Secret: ${MALIPO_SECRET:-}
+    volumes:
+      - adhicom-uploads:/app/wwwroot/uploads
+    ports:
+      - "127.0.0.1:8080:8080"
+
+volumes:
+  adhicom-db:
+  adhicom-uploads:

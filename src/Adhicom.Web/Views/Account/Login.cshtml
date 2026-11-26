@@ -1,0 +1,24 @@
+@model Adhicom.Web.ViewModels.LoginViewModel
+@{ ViewData["Title"] = "Connexion — Adhicom"; var returnUrl = ViewData["ReturnUrl"] as string; }
+<section class="section">
+    <div class="container-narrow" style="max-width:480px">
+        <div style="text-align:center;margin-bottom:1.5rem">
+            <a class="logo" href="/" style="justify-content:center"><span class="logo-mark">A</span><span>Adhicom</span></a>
+            <h1 style="margin-top:1rem">Bon retour 👋</h1>
+            <p class="muted">Connectez-vous à votre espace commerçant.</p>
+        </div>
+        <form method="post" class="card">
+            @Html.AntiForgeryToken()
+            @if (!string.IsNullOrEmpty(returnUrl)) { <input type="hidden" name="returnUrl" value="@returnUrl" /> }
+            @if (!ViewContext.ModelState.IsValid) { <div class="validation-summary"><div asp-validation-summary="All"></div></div> }
+            <div class="form-group"><label asp-for="Email"></label><input asp-for="Email" type="email" autocomplete="email" autofocus /><span class="field-error" asp-validation-for="Email"></span></div>
+            <div class="form-group"><label asp-for="Password"></label><input asp-for="Password" type="password" autocomplete="current-password" /><span class="field-error" asp-validation-for="Password"></span></div>
+            <div class="form-group" style="display:flex;justify-content:space-between;align-items:center">
+                <label style="margin:0;font-weight:500"><input asp-for="RememberMe" type="checkbox" style="width:auto;margin-right:.4rem" /> Se souvenir de moi</label>
+                <a class="small" href="/account/forgot-password">Mot de passe oublié ?</a>
+            </div>
+            <button class="btn btn-primary btn-block btn-lg" type="submit">Se connecter</button>
+        </form>
+        <p class="small muted" style="text-align:center;margin-top:1rem">Pas encore de compte ? <a href="/account/register"><strong>Créer ma boutique gratuitement</strong></a></p>
+    </div>
+</section>

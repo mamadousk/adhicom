@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>@(ViewData["Title"] as string ?? "Administration") · Adhicom — Adhil &amp; Co</title>
+    <link rel="icon" href="/img/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="/css/app.css" />
+</head>
+<body class="app-shell">
+    <aside class="sidebar sidebar-admin" aria-label="Navigation administration">
+        <div class="sidebar-brand">
+            <img src="/img/logo.svg" alt="Adhicom" class="logo" style="filter:brightness(0) invert(1)" />
+            <span class="sidebar-pill">ADMIN</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="sidebar-link @(Context.Request.Path == "/admin" ? "active" : "")" href="/admin"><span aria-hidden="true">🏠</span> Vue d'ensemble</a>
+            <a class="sidebar-link @(Context.Request.Path.StartsWithSegments("/admin/stores") ? "active" : "")" href="/admin/stores"><span aria-hidden="true">🏪</span> Boutiques</a>
+            <a class="sidebar-link @(Context.Request.Path.StartsWithSegments("/admin/users") ? "active" : "")" href="/admin/users"><span aria-hidden="true">👥</span> Utilisateurs</a>
+            <a class="sidebar-link @(Context.Request.Path.StartsWithSegments("/admin/plans") ? "active" : "")" href="/admin/plans"><span aria-hidden="true">🧾</span> Plans tarifaires</a>
+            <a class="sidebar-link @(Context.Request.Path.StartsWithSegments("/admin/subscriptions") ? "active" : "")" href="/admin/subscriptions"><span aria-hidden="true">💳</span> Abonnements</a>
+            <a class="sidebar-link @(Context.Request.Path.StartsWithSegments("/admin/reports") ? "active" : "")" href="/admin/reports"><span aria-hidden="true">🚩</span> Signalements</a>
+            <a class="sidebar-link @(Context.Request.Path.StartsWithSegments("/admin/support") ? "active" : "")" href="/admin/support"><span aria-hidden="true">💬</span> Support</a>
+            <a class="sidebar-link @(Context.Request.Path.StartsWithSegments("/admin/audit") ? "active" : "")" href="/admin/audit"><span aria-hidden="true">📜</span> Journal d'audit</a>
+            <a class="sidebar-link @(Context.Request.Path.StartsWithSegments("/admin/settings") ? "active" : "")" href="/admin/settings"><span aria-hidden="true">⚙️</span> Paramètres globaux</a>
+            <a class="sidebar-link @(Context.Request.Path.StartsWithSegments("/admin/content") ? "active" : "")" href="/admin/content"><span aria-hidden="true">✏️</span> Contenu du site</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="/" class="sidebar-link sidebar-link-muted"><span aria-hidden="true">←</span> Retour au site public</a>
+            <form method="post" action="/account/logout">@Html.AntiForgeryToken()<button class="sidebar-link sidebar-link-muted sidebar-logout" type="submit"><span aria-hidden="true">⏻</span> Se déconnecter</button></form>
+        </div>
+    </aside>
+    <div class="app-main">
+        <header class="app-topbar">
+            <div class="app-topbar-inner">
+                <span class="topbar-title">Administration générale — Adhil &amp; Co</span>
+                <a class="btn btn-ghost btn-sm" href="/app">Espace commerçant →</a>
+            </div>
+        </header>
+        <main class="app-content">
+            @if (TempData["Toast"] is string toast)
+            {
+                <div class="alert @(((string?)TempData["ToastType"]) == "error" ? "alert-error" : "alert-ok")" role="status">@toast</div>
+            }
+            @RenderBody()
+        </main>
+    </div>
+    <script src="/js/site.js"></script>
+</body>
+</html>

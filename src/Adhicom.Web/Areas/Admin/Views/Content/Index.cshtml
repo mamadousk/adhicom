@@ -1,0 +1,22 @@
+@{
+    ViewData["Title"] = "Contenu du site — Administration Adhicom";
+    var contents = ViewData["Contents"] as List<Adhicom.Domain.Administration.SiteContent> ?? new();
+}
+<div class="page-head"><div><p class="breadcrumb"><a href="/admin">Administration</a> / Contenu</p><h1>Contenu éditorial du site</h1><p class="muted">Titres, descriptions et textes mis en avant sur adhicom.com. Chaque modification est auditée.</p></div></div>
+@if (contents.Count == 0)
+{
+    <div class="empty-state card"><p>Aucun contenu éditorial configuré pour l'instant.</p></div>
+}
+else
+{
+    @foreach (var c in contents)
+    {
+        <form method="post" action="/admin/content/update" class="card" style="margin-bottom:.6rem">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="key" value="@c.Key" />
+            <label class="small"><code>@c.Key</code>@(c.Description is null ? "" : $" — {c.Description}")</label>
+            <textarea name="value" rows="2" style="width:100%;margin-top:.3rem">@c.Value</textarea>
+            <button class="btn btn-outline btn-sm" type="submit" style="margin-top:.4rem">Enregistrer</button>
+        </form>
+    }
+}

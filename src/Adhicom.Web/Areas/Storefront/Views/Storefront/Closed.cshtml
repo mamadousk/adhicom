@@ -1,0 +1,22 @@
+@model Adhicom.Domain.Stores.Store
+@{
+    ViewData["Title"] = "Boutique indisponible";
+    var status = ViewData["StoreStatus"] as StoreStatus? ?? Model.Status;
+    ViewData["Store"] = Model;
+    var (emoji, heading) = status switch
+    {
+        StoreStatus.Suspended => ("⏸️", "Boutique temporairement indisponible"),
+        StoreStatus.Disabled => ("🚫", "Boutique désactivée"),
+        StoreStatus.Closed => ("🔒", "Cette boutique a fermé"),
+        StoreStatus.Draft => ("🛠️", "Boutique en préparation"),
+        StoreStatus.PendingValidation => ("⏳", "Boutique en cours de validation"),
+        _ => ("ℹ️", "Boutique indisponible")
+    };
+}
+<div class="confirm-box">
+    <div style="font-size:3rem">@emoji</div>
+    <h1 style="color:var(--shop-primary);font-size:1.4rem">@heading</h1>
+    <p class="muted">« @Model.Name » n'accepte pas de commandes pour le moment. Revenez un peu plus tard, ou contactez le commerçant directement.</p>
+    @if (Model.WhatsappNumber is not null) { <a class="btn btn-primary" href="https://wa.me/@Model.WhatsappNumber.TrimStart('+').Replace(" ", "")" rel="noopener">💬 Contacter la boutique</a> }
+    <p style="margin-top:1rem"><a href="/" class="small" style="color:var(--shop-primary)">Découvrir Adhicom →</a></p>
+</div>

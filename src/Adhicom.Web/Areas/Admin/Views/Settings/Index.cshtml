@@ -1,0 +1,25 @@
+@model List<Adhicom.Domain.Administration.SystemSetting>
+@{ ViewData["Title"] = "Paramètres globaux — Administration Adhicom"; }
+<div class="page-head"><div><p class="breadcrumb"><a href="/admin">Administration</a> / Paramètres</p><h1>Paramètres globaux</h1><p class="muted">Configuration de la plateforme (période de grâce, seuils...). Chaque modification est auditée.</p></div></div>
+@if (Model.Count == 0)
+{
+    <div class="empty-state card"><p>Aucun paramètre global. Ils sont créés au premier démarrage (seed).</p></div>
+}
+else
+{
+    <div class="card" style="padding:0;overflow:hidden">
+        @foreach (var s in Model)
+        {
+            <form method="post" action="/admin/settings/update" style="display:flex;gap:.75rem;align-items:center;padding:.6rem 1rem;border-bottom:1px solid var(--line);flex-wrap:wrap">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="key" value="@s.Key" />
+                <div style="flex:0 0 280px;min-width:0">
+                    <code>@s.Key</code><br />
+                    @if (s.Description is not null) { <span class="small muted">@s.Description</span> }
+                </div>
+                <input type="text" name="value" value="@s.Value" style="flex:1;min-width:160px" />
+                <button class="btn btn-outline btn-sm" type="submit">Enregistrer</button>
+            </form>
+        }
+    </div>
+}

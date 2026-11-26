@@ -1,0 +1,24 @@
+@model Adhicom.Web.ViewModels.ContactViewModel
+@{ ViewData["Title"] = "Contact — Adhicom"; }
+<section class="section">
+    <div class="container-narrow">
+        <div class="section-head">
+            <p class="eyebrow">Contact</p>
+            <h1>Parlons de votre commerce</h1>
+            <p class="muted">Une question sur Adhicom, un partenariat, une aide au démarrage ? Écrivez-nous.</p>
+        </div>
+        @if (TempData["Toast"] is string toast) { <div class="alert alert-ok">@toast</div> }
+        <form method="post" class="card">
+            @Html.AntiForgeryToken()
+            @if (!ViewContext.ModelState.IsValid) { <div class="validation-summary"><strong>Merci de corriger :</strong><div asp-validation-summary="All"></div></div> }
+            <div class="form-grid">
+                <div class="form-group"><label asp-for="Name"></label><input asp-for="Name" type="text" autocomplete="name" /><span class="field-error" asp-validation-for="Name"></span></div>
+                <div class="form-group"><label asp-for="Email"></label><input asp-for="Email" type="email" autocomplete="email" /><span class="field-error" asp-validation-for="Email"></span></div>
+                <div class="form-group full"><label asp-for="Subject"></label><input asp-for="Subject" type="text" /><span class="field-error" asp-validation-for="Subject"></span></div>
+                <div class="form-group full"><label asp-for="Message"></label><textarea asp-for="Message" rows="5"></textarea><span class="field-error" asp-validation-for="Message"></span></div>
+            </div>
+            <button class="btn btn-primary" type="submit">Envoyer le message</button>
+        </form>
+        <p class="small muted" style="margin-top:1rem">Vous préférez WhatsApp ? <a href="https://wa.me/243990000000" target="_blank" rel="noopener">Écrivez-nous directement</a> — support du lundi au samedi.</p>
+    </div>
+</section>

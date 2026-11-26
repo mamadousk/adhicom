@@ -1,0 +1,64 @@
+@model Adhicom.Web.ViewModels.SubscriptionViewModel
+@{
+    ViewData["Title"] = "Abonnement — Adhicom";
+    var sub = Model.Subscription;
+    var grace = sub is not null && sub.Status == Adhicom.Domain.Subscriptions.SubscriptionStatus.Grace;
+    var pastDue = sub is not null && sub.Status == Adhicom.Domain.Subscriptions.SubscriptionStatus.PastDue;
+    string Pct(int used, int limit) => limit <= 0 ? "0" : Math.Min(100, (int)Math.Round(100.0 * used / limit)).ToString();
+}
+<div class="page-head"><div><p class="breadcrumb"><a href="/app">Tableau de bord</a> / Abonnement</p><h1>Mon abonnement</h1></div><a class="btn btn-outline btn-sm" href="/tarifs">Comparer les plans</a></div>
+
+@if (grace)
+{
+    <div class="alert alert-warn">⏳ Votre abonnement est en <strong>période de grâce</strong> (@Model.DaysRemaining jour(s) restant(s)). Renouvelez-le pour éviter la limitation de votre boutique.</div>
+}
+else if (pastDue)
+{
+    <div class="alert alert-error">⚠️ Votre abonnement est <strong>impayé</strong>. Vos fonctionnalités sont limitées (création de produits/boutiques bloquée). Réglez pour rétablir l'accès complet — votre compte et vos données ne seront jamais supprimés automatiquement.</div>
+}
+
+<div class="detail-grid">
+    <div class="card">
+        <div class="plan-current" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap">
+            <div>
+                <p class="small muted" style="margin:0">Plan actuel</p>
+                <h2 style="margin:.1rem 0 0;color:var(--brand-700)">@Model.Plan.Name</h2>
+                <p class="muted small">@Model.Plan.Description</p>
+            </div>
+            <div style="text-align:right">
+                <div style="font-size:1.8rem;font-weight:800;color:var(--brand-700)">@Ui.Money(Model.Plan.MonthlyPrice, Model.Plan.Currency)<span class="small muted" style="font-size:.8rem"> / mois</span></div>
+                @if (sub is not null) { <span class="badge @(sub.Status == Adhicom.Domain.Subscriptions.SubscriptionStatus.Active ? "badge-ok" : "badge-warn")">@Ui.SubscriptionStatus(sub.Status)</span> }
+                else { <span class="badge badge-neutral">Plan Gratuit par défaut</span> }
+            </div>
+        </div>
+        @if (sub is not null)
+        {
+            <p class="small muted" style="margin:.8rem 0 0">Période : @sub.StartsAtUtc.ToString("dd/MM/yyyy") → @sub.EndsAtUtc.ToString("dd/MM/yyyy")@(sub.AutoRenew ? " · Renouvellement automatique activé" : "")</p>
+        }
+        <hr style="margin:1rem 0;border:none;border-top:1px solid var(--line)" />
+        <h3 style="font-size:1rem">Utilisation de votre plan</h3>
+        <div style="margin-top:.5rem">
+            <div class="summary-row"><span>Boutiques (@Model.StoresUsed / @Model.StoresLimit)</span></div>
+            <div class="progress" style="height:8px;margin-bottom:.7rem"><div class="progress-bar bar-brand" style="width:@Pct(Model.StoresUsed, Model.StoresLimit)%"></div></div>
+            <div class="summary-row"><span>Produits actifs (@Model.ProductsUsed / @Model.ProductsLimit)</span></div>
+            <div class="progress" style="height:8px"><div class="progress-bar bar-accent" style="width:@Pct(Model.ProductsUsed, Model.ProductsLimit)%"></div></div>
+        </div>
+        <p class="small muted" style="margin-top:.7rem">Rapports avancés : @(Model.AdvancedAnalytics ? "inclus ✅" : "réservés aux plans Pro et supérieurs")</p>
+    </div>
+
+    <div class="card">
+        <h3 style="font-size:1rem">Changer de plan</h3>
+        <p class="muted small">La facturation passe par l'équipe Adhicom (Mobile Money / virement) — nous vous contactons pour finaliser. Aucun paiement automatique en ligne n'est prélevé aujourd'hui.</p>
+        @foreach (var p in Model.AvailablePlans.Where(p => p.MonthlyPrice > 0))
+        {
+            var isCurrent = sub is not null && sub.PlanId == p.Id || (sub is null && Model.Plan.Id == p.Id);
+            if (isCurrent) continue;
+            <form method="post" action="/app/subscription/requestupgrade" class="stack-row" style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;border:1px solid var(--line);border-radius:12px;padding:.6rem .75rem;margin-top:.5rem">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="planKey" value="@p.Key" />
+                <span><strong>@p.Name</strong> — @Ui.Money(p.MonthlyPrice, p.Currency)/mois<br /><span class="small muted">@p.MaxStores boutique(s) · @p.MaxProducts produits</span></span>
+                <button class="btn btn-outline btn-sm" type="submit">Demander</button>
+            </form>
+        }
+    </div>
+</div>

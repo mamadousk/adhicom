@@ -1,0 +1,137 @@
+@model Adhicom.Domain.Catalog.Product
+@{
+    var product = Model;
+    var settings = ViewData["Settings"] as Adhicom.Domain.Stores.StoreSettings;
+    var storeSlug = Context.Request.RouteValues["storeSlug"]?.ToString();
+    var related = ViewData["Related"] as List<Adhicom.Domain.Catalog.Product> ?? new();
+    var shareUrl = ViewData["ShareUrl"] as string ?? "";
+    var currency = settings?.Currency ?? "USD";
+    var lowThreshold = settings?.LowStockThreshold ?? 5;
+    var promo = product.CompareAtPrice is { } cap && cap > product.Price;
+    var images = product.Images.OrderByDescending(i => i.IsPrimary).ThenBy(i => i.DisplayOrder).ToList();
+    var mainImg = images.FirstOrDefault()?.Url;
+    var isOut = product.StockQuantity <= 0;
+    var store = ViewData["Store"] as Adhicom.Domain.Stores.Store;
+
+    ViewData["Title"] = $"{product.Name} — {store?.Name}";
+    ViewData["MetaDescription"] = product.Description?.Length > 180 ? product.Description[..180] + "…" : product.Description ?? $"{product.Name} chez {store?.Name}. Livraison rapide.";
+    ViewData["CanonicalUrl"] = shareUrl;
+}
+@section Head {
+    <script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "type": "Product",
+        "name": "@product.Name",
+        "description": "@((product.Description ?? "").Replace("\"", "'").Replace("\n", " ").Replace("\\", ""))",
+        "sku": "@product.Sku",
+        "offers": {
+            "@@type": "Offer",
+            "price": "@product.Price.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)",
+            "priceCurrency": "@currency",
+            "availability": "@(isOut ? "https://schema.org/OutOfStock" : "https://schema.org/InStock")",
+            "url": "@shareUrl"
+        }
+    }
+    </script>
+}
+
+<div class="two-col">
+    <div>
+        <nav class="small muted" style="margin-bottom:.5rem"><a href="/storefront/@storeSlug" style="color:var(--shop-primary)">← Retour au catalogue</a></nav>
+        <div class="product-hero">
+            <div>
+                @if (mainImg is not null)
+                {
+                    <img class="main-img" id="main-img" src="@mainImg" alt="@product.Name" />
+                    @if (images.Count > 1)
+                    {
+                        <div class="gallery-thumbs">
+                            @foreach (var img in images)
+                            {
+                                <img src="@img.Url" alt="Photo de @product.Name" class="gallery-thumb @(img.Url == mainImg ? "active" : "")" data-full="@img.Url" />
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="main-img" style="display:flex;align-items:center;justify-content:center;font-size:5rem;color:#C7CFCB">@Ui.Initials(product.Name)</div>
+                }
+            </div>
+            <div>
+                @if (product.Category is not null) { <span class="small muted">@product.Category.Name</span> }
+                <h1 style="font-size:1.6rem;margin:.15rem 0 .4rem;color:var(--shop-primary)">@product.Name</h1>
+                <div class="product-price" style="font-size:1.6rem">
+                    @Ui.Money(product.Price, currency)
+                    @if (promo) { <span class="price-old" style="font-size:1rem">@Ui.Money(product.CompareAtPrice!.Value, currency)</span> <span class="promo-badge">Promo</span> }
+                </div>
+                <p class="stock-dot @(isOut ? "out" : product.StockQuantity <= lowThreshold ? "low" : "")" style="margin:.35rem 0">
+                    @(isOut ? "Rupture de stock — disponible sur commande" : product.StockQuantity <= lowThreshold ? $"Plus que {product.StockQuantity} en stock" : "En stock")
+                </p>
+                @if (product.Description is not null) { <p style="color:#3D4A43;line-height:1.6">@product.Description</p> }
+
+                <form method="post" action="/storefront/@storeSlug/AddToCart" style="margin-top:1rem">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="productId" value="@product.Id" />
+
+                    @if (product.Variants.Count > 0)
+                    {
+                        <div class="variant-group" style="margin:.7rem 0">
+                            <label class="small" style="font-weight:600">Options</label>
+                            <div style="display:flex;gap:.45rem;flex-wrap:wrap;margin-top:.3rem">
+                                @foreach (var v in product.Variants)
+                                {
+                                    <label class="variant-pill @(v == product.Variants.First() ? "selected" : "")">
+                                        <input type="radio" name="variantId" value="@v.Id" style="display:none" @(v == product.Variants.First() ? "checked" : "") @(v.StockQuantity <= 0 ? "disabled" : "") />
+                                        @v.Name : @v.Value
+                                        @if (v.PriceAdjustment is { } adj && adj != product.Price) { <span class="small muted">(@Ui.Money(adj, currency))</span> }
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <div class="qty-stepper" data-stepper style="margin:.6rem 0">
+                        <button type="button" data-step="-1" aria-label="Réduire la quantité">−</button>
+                        <input type="number" name="quantity" value="1" min="1" max="@Math.Max(1, product.StockQuantity)" aria-label="Quantité" readonly />
+                        <button type="button" data-step="1" aria-label="Augmenter la quantité">+</button>
+                    </div>
+
+                    <button class="cart-btn" type="submit" style="width:100%;justify-content:center;font-size:1rem;padding:.8rem" @(isOut ? "disabled" : "")>
+                        🛒 @(isOut ? "Indisponible" : "Ajouter au panier")
+                    </button>
+                </form>
+
+                <div style="display:flex;gap:.4rem;margin-top:.8rem;flex-wrap:wrap">
+                    <button class="btn btn-ghost btn-sm" data-copy="@shareUrl" type="button">🔗 Copier le lien</button>
+                    <a class="btn btn-ghost btn-sm" href="https://wa.me/?text=@Uri.EscapeDataString(product.Name + " — " + shareUrl)" rel="noopener" target="_blank">Partager sur WhatsApp</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <aside class="summary-box">
+        <h2 style="font-size:1rem;margin-top:0">🛍️ La boutique</h2>
+        <p class="small" style="margin:.2rem 0">@(store?.Name)@(store?.City is null ? "" : $" — {store.City}")</p>
+        @if (settings?.DeliveryInfo is not null) { <p class="small muted">🚚 @settings.DeliveryInfo</p> }
+        <a class="btn btn-outline btn-sm" href="/storefront/@storeSlug" style="margin-top:.4rem">Voir tout le catalogue →</a>
+    </aside>
+</div>
+
+@if (related.Count > 0)
+{
+    <section style="max-width:1180px;margin:0 auto 2rem;padding:0 1.1rem">
+        <h2 style="font-size:1.1rem;color:var(--shop-primary)">Vous aimerez aussi</h2>
+        <div class="shop-grid" style="padding:0;grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
+            @foreach (var p in related)
+            {
+                var img = p.Images.OrderByDescending(i => i.IsPrimary).FirstOrDefault()?.Url;
+                <a class="product-card" href="/storefront/@storeSlug/Product/@p.Slug">
+                    <div class="product-media">@if (img is not null) { <img src="@img" alt="@p.Name" loading="lazy" /> }</div>
+                    <div class="product-body"><span class="product-title" style="min-height:2em">@p.Name</span><span class="product-price">@Ui.Money(p.Price, currency)</span></div>
+                </a>
+            }
+        </div>
+    </section>
+}

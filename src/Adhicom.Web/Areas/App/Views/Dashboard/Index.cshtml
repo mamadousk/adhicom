@@ -1,0 +1,70 @@
+@model Adhicom.Web.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Tableau de bord — " + Model.Store.Name;
+    var s = Model.Stats;
+    var maxBar = s.SalesLast14Days.Max(p => (decimal?)p.Revenue) ?? 0;
+    if (maxBar < 1) maxBar = 1;
+}
+@if (Model.SetupCompletion < 100)
+{
+    <div class="card card-flat" style="margin-bottom:1rem;border-left:4px solid var(--accent)">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap">
+            <div><strong>Configuration de votre boutique : @Model.SetupCompletion%</strong><br /><span class="small muted">Complétez les étapes pour vendre plus vite.</span></div>
+            <a class="btn btn-accent btn-sm" href="/app/onboarding">Continuer la configuration →</a>
+        </div>
+        <div class="progress" style="margin-top:.6rem"><div class="progress-bar" style="width:@(Model.SetupCompletion)%"></div></div>
+    </div>
+}
+
+<div class="page-head">
+    <div><p class="breadcrumb">Tableau de bord</p><h1>Bonjour 👋 Voici l'activité de <strong>@Model.Store.Name</strong></h1></div>
+    <a class="btn btn-outline btn-sm" href="/storefront/@Model.Store.Slug" target="_blank" rel="noopener">🌐 Voir ma boutique</a>
+</div>
+
+<div class="kpi-grid" style="margin-bottom:1.2rem">
+    <div class="card-kpi kpi-brand"><div class="kpi-label">Commandes aujourd'hui</div><div class="kpi-value">@s.OrdersToday</div><div class="kpi-sub">@s.PendingOrders en attente</div></div>
+    <div class="card-kpi kpi-accent"><div class="kpi-label">CA du jour (encaissé)</div><div class="kpi-value">@Ui.Money(s.RevenueTodayPaid, Model.Currency)</div><div class="kpi-sub">Payées ou livrées</div></div>
+    <div class="card-kpi kpi-accent"><div class="kpi-label">CA du mois (encaissé)</div><div class="kpi-value">@Ui.Money(s.RevenueMonthPaid, Model.Currency)</div><div class="kpi-sub">Hors commandes non payées</div></div>
+    <div class="card-kpi kpi-brand"><div class="kpi-label">Produits</div><div class="kpi-value">@s.ProductsCount</div><div class="kpi-sub">@s.OutOfStockCount en stock faible / rupture</div></div>
+    <div class="card-kpi kpi-brand"><div class="kpi-label">Clients</div><div class="kpi-value">@s.CustomersCount</div><div class="kpi-sub">ayant commandé</div></div>
+</div>
+
+<div class="detail-grid">
+    <div class="card">
+        <h3 style="font-size:1.05rem">Ventes encaissées — 14 derniers jours</h3>
+        <div class="spark" role="img" aria-label="Courbe des ventes sur 14 jours">
+            @foreach (var point in s.SalesLast14Days)
+            {
+                var height = maxBar == 0 ? 2 : Math.Max(2, (double)(point.Revenue / maxBar) * 64);
+                <div class="spark-bar" style="height:@(height.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))px" title="@point.Date.ToString("dd/MM") — @Ui.Money(point.Revenue, Model.Currency) — @point.Orders commande(s)"></div>
+            }
+        </div>
+        <p class="small muted" style="margin-top:.4rem">@s.SalesLast14Days.First().Date.ToString("dd/MM") → @s.SalesLast14Days.Last().Date.ToString("dd/MM")</p>
+    </div>
+
+    <div class="card">
+        <h3 style="font-size:1.05rem">Commandes récentes</h3>
+        @if (s.RecentOrders.Count == 0)
+        {
+            <div class="empty-state"><p>Aucune commande pour le moment.<br />Partagez le lien de votre boutique pour démarrer 🚀</p><button class="btn btn-outline btn-sm" data-copy="@($"/storefront/{Model.Store.Slug}")">Copier le lien de la boutique</button></div>
+        }
+        else
+        {
+            <div class="table-wrap"><table class="table">
+                <thead><tr><th>N°</th><th>Client</th><th>Total</th><th>Statut</th></tr></thead>
+                <tbody>
+                @foreach (var order in s.RecentOrders)
+                {
+                    <tr>
+                        <td><a href="/app/orders/details/@order.Id"><strong>@order.OrderNumber</strong></a></td>
+                        <td>@order.CustomerName</td>
+                        <td>@Ui.Money(order.Total, order.Currency)</td>
+                        <td><span class="badge @(order.Status == OrderStatus.Pending ? "badge-warn" : order.Status == OrderStatus.Delivered ? "badge-ok" : "badge-neutral")">@Ui.OrderStatus(order.Status)</span></td>
+                    </tr>
+                }
+                </tbody>
+            </table></div>
+            <p class="small" style="margin-top:.5rem"><a href="/app/orders">Voir toutes les commandes →</a></p>
+        }
+    </div>
+</div>

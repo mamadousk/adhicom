@@ -1,0 +1,120 @@
+@model Adhicom.Web.ViewModels.SettingsPageViewModel
+@{
+    ViewData["Title"] = "Paramètres de la boutique — Adhicom";
+    var themes = new[] { ("generaliste", "Généraliste"), ("mode", "Mode & Fashion"), ("tech", "High-tech & Électronique"), ("beaute", "Beauté & Cosmétiques"), ("epicerie", "Épicerie & Alimentation") };
+    var fonts = new[] { ("system", "Système (par défaut)"), ("serif", "Serif élégante"), ("rounded", "Arrondie & conviviale") };
+}
+<div class="page-head"><div><p class="breadcrumb"><a href="/app">Tableau de bord</a> / Paramètres</p><h1>Paramètres de la boutique</h1></div><a class="btn btn-outline btn-sm" href="/storefront/@Model.Store.Slug" target="_blank" rel="noopener">Voir la boutique ↗</a></div>
+
+<nav class="chip-row" style="padding-left:0;padding-right:0;margin-bottom:.75rem">
+    <a class="chip active" href="#profil">Profil</a>
+    <a class="chip" href="#apparence">Apparence</a>
+    <a class="chip" href="#seo">SEO & livraison</a>
+</nav>
+
+<div id="profil" class="card" style="margin-bottom:1rem">
+    <h2 style="font-size:1.15rem;margin-bottom:.25rem">Profil de la boutique</h2>
+    <p class="muted small">Ces informations sont visibles publiquement sur votre boutique.</p>
+    <form method="post" action="/app/settings/SaveProfile" enctype="multipart/form-data" style="margin-top:.75rem">
+        @Html.AntiForgeryToken()
+        <div class="form-grid">
+            <div class="form-group full"><label for="Name">Nom commercial *</label><input id="Name" name="Name" type="text" value="@Model.Profile.Name" required /><span class="field-error" data-valmsg-for="Name"></span></div>
+            <div class="form-group full"><label for="Description">Description</label><textarea id="Description" name="Description" rows="2">@Model.Profile.Description</textarea></div>
+            <div class="form-group"><label for="BusinessCategory">Secteur</label><input id="BusinessCategory" name="BusinessCategory" type="text" value="@Model.Profile.BusinessCategory" /></div>
+            <div class="form-group"><label for="Country">Pays</label><input id="Country" name="Country" type="text" maxlength="2" value="@Model.Profile.Country" /></div>
+            <div class="form-group"><label for="City">Ville</label><input id="City" name="City" type="text" value="@Model.Profile.City" /></div>
+            <div class="form-group"><label for="Address">Adresse</label><input id="Address" name="Address" type="text" value="@Model.Profile.Address" /></div>
+            <div class="form-group"><label for="WhatsappNumber">WhatsApp</label><input id="WhatsappNumber" name="WhatsappNumber" type="tel" value="@Model.Profile.WhatsappNumber" /></div>
+            <div class="form-group"><label for="BusinessEmail">E-mail commercial</label><input id="BusinessEmail" name="BusinessEmail" type="email" value="@Model.Profile.BusinessEmail" /></div>
+            <div class="form-group"><label for="StockMode">Décrément du stock</label>
+                <select id="StockMode" name="StockMode">
+                    <option value="OnOrder" selected="@(Model.Profile.StockMode == Adhicom.Domain.Common.StockDecrementMode.OnOrder ? "selected" : null)">À la prise de commande</option>
+                    <option value="OnConfirmation" selected="@(Model.Profile.StockMode == Adhicom.Domain.Common.StockDecrementMode.OnConfirmation ? "selected" : null)">À la confirmation</option>
+                </select>
+            </div>
+            <div class="form-group"><label for="WhatsAppMode">Mode de commande WhatsApp</label>
+                <select id="WhatsAppMode" name="WhatsAppMode">
+                    <option value="RecordAndContact" selected="@(Model.Profile.WhatsAppMode == Adhicom.Domain.Common.WhatsAppOrderMode.RecordAndContact ? "selected" : null)">Commande enregistrée + bouton WhatsApp</option>
+                    <option value="Redirect" selected="@(Model.Profile.WhatsAppMode == Adhicom.Domain.Common.WhatsAppOrderMode.Redirect ? "selected" : null)">Redirection WhatsApp directe</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn btn-primary" type="submit">Enregistrer le profil</button>
+    </form>
+
+    <div class="form-grid" style="margin-top:1rem;border-top:1px solid var(--line);padding-top:1rem">
+        <form method="post" action="/app/settings/UploadLogo" enctype="multipart/form-data" class="form-group">
+            @Html.AntiForgeryToken()
+            <label>Logo (PNG/JPG/WebP, moins de 4 Mo)</label>
+            <input name="logo" type="file" accept="image/png,image/jpeg,image/webp" required />
+            @if (Model.Store.LogoUrl is not null) { <img src="@Model.Store.LogoUrl" alt="Logo actuel" style="width:96px;height:96px;object-fit:contain;margin:.4rem 0;border-radius:12px;border:1px solid var(--line)" /> }
+            <button class="btn btn-outline btn-sm" type="submit">Téléverser le logo</button>
+        </form>
+        <form method="post" action="/app/settings/UploadBanner" enctype="multipart/form-data" class="form-group">
+            @Html.AntiForgeryToken()
+            <label>Bannière d'accueil de la boutique</label>
+            <input name="banner" type="file" accept="image/png,image/jpeg,image/webp" required />
+            @if (Model.Store.BannerUrl is not null) { <img src="@Model.Store.BannerUrl" alt="Bannière actuelle" style="max-width:220px;max-height:90px;object-fit:cover;margin:.4rem 0;border-radius:12px;border:1px solid var(--line)" /> }
+            <button class="btn btn-outline btn-sm" type="submit">Téléverser la bannière</button>
+        </form>
+    </div>
+</div>
+
+<div id="apparence" class="card" style="margin-bottom:1rem">
+    <h2 style="font-size:1.15rem">Apparence</h2>
+    <form method="post" action="/app/settings/SaveAppearance" style="margin-top:.5rem">
+        @Html.AntiForgeryToken()
+        <div class="form-grid">
+            <div class="form-group"><label>Thème</label>
+                <select name="ThemeKey">
+                    @foreach (var (key, label) in themes)
+                    {
+                        <option value="@key" selected="@(Model.Appearance.ThemeKey == key ? "selected" : null)">@label</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group"><label>Police</label>
+                <select name="FontFamily">
+                    @foreach (var (key, label) in fonts)
+                    {
+                        <option value="@key" selected="@(Model.Appearance.FontFamily == key ? "selected" : null)">@label</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group"><label>Couleur principale</label><input type="color" name="PrimaryColor" value="@Model.Appearance.PrimaryColor" style="height:44px;padding:.2rem" /></div>
+            <div class="form-group"><label>Couleur secondaire</label><input type="color" name="SecondaryColor" value="@Model.Appearance.SecondaryColor" style="height:44px;padding:.2rem" /></div>
+            <div class="form-group full"><label>Bandeau promo (optionnel)</label><input name="BannerText" type="text" value="@Model.Appearance.BannerText" placeholder="Ex. Livraison offerte dès 50 $ d'achat !" /></div>
+            <div class="form-group full"><label style="display:flex;gap:.5rem;align-items:center;font-weight:500"><input type="checkbox" name="ShowBanner" value="true" style="width:auto" @(Model.Appearance.ShowBanner ? "checked" : "") /> Afficher le bandeau sur la boutique</label></div>
+        </div>
+        <button class="btn btn-primary" type="submit">Enregistrer l'apparence</button>
+    </form>
+</div>
+
+<div id="seo" class="card">
+    <h2 style="font-size:1.15rem">SEO, livraison et stock</h2>
+    <form method="post" action="/app/settings/SaveSeo" style="margin-top:.5rem">
+        @Html.AntiForgeryToken()
+        <div class="form-grid">
+            <div class="form-group"><label>Devise</label>
+                <select name="Currency">
+                    <option value="USD" selected="@(Model.Seo.Currency == "USD" ? "selected" : null)">USD — Dollar</option>
+                    <option value="CDF" selected="@(Model.Seo.Currency == "CDF" ? "selected" : null)">CDF — Franc congolais</option>
+                    <option value="XAF" selected="@(Model.Seo.Currency == "XAF" ? "selected" : null)">XAF — Franc CFA (CEMAC)</option>
+                    <option value="XOF" selected="@(Model.Seo.Currency == "XOF" ? "selected" : null)">XOF — Franc CFA (UEMOA)</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Fuseau horaire</label><input name="Timezone" type="text" value="@Model.Seo.Timezone" /></div>
+            <div class="form-group full"><label>Titre SEO</label><input name="SeoTitle" type="text" maxlength="120" value="@Model.Seo.SeoTitle" placeholder="@Model.Store.Name — @(Model.Store.City ?? "Kinshasa")" /></div>
+            <div class="form-group full"><label>Description SEO</label><textarea name="SeoDescription" rows="2" maxlength="300">@Model.Seo.SeoDescription</textarea></div>
+            <div class="form-group"><label>Instagram</label><input name="SocialInstagram" type="text" value="@Model.Seo.SocialInstagram" placeholder="@maboutique" /></div>
+            <div class="form-group"><label>Facebook</label><input name="SocialFacebook" type="text" value="@Model.Seo.SocialFacebook" placeholder="maboutique" /></div>
+            <div class="form-group"><label>TikTok</label><input name="SocialTiktok" type="text" value="@Model.Seo.SocialTiktok" placeholder="@maboutique" /></div>
+            <div class="form-group"><label>YouTube</label><input name="SocialYoutube" type="text" value="@Model.Seo.SocialYoutube" placeholder="@maboutique" /></div>
+            <div class="form-group full"><label>Informations de livraison (affichées sur la boutique)</label><textarea name="DeliveryInfo" rows="2" maxlength="400" placeholder="Ex. Livraison Kinshasa 24–48h · 1–3 jours à l'intérieur du pays · Retrait possible à la boutique">@Model.Seo.DeliveryInfo</textarea></div>
+            <div class="form-group"><label>Téléphone de contact public</label><input name="ContactPhone" type="tel" value="@Model.Seo.ContactPhone" /></div>
+            <div class="form-group"><label>Livraison offerte à partir de</label><input name="FreeShippingOver" type="number" step="0.01" min="0" value="@Model.Seo.FreeShippingOver" /></div>
+            <div class="form-group"><label>Seuil d'alerte stock faible</label><input name="LowStockThreshold" type="number" min="0" max="10000" value="@Model.Seo.LowStockThreshold" /></div>
+        </div>
+        <button class="btn btn-primary" type="submit">Enregistrer</button>
+    </form>
+</div>

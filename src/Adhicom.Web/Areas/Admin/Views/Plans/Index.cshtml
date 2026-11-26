@@ -1,0 +1,26 @@
+@model List<Adhicom.Domain.Subscriptions.Plan>
+@{ ViewData["Title"] = "Plans tarifaires — Administration Adhicom"; }
+<div class="page-head">
+    <div><p class="breadcrumb"><a href="/admin">Administration</a> / Plans</p><h1>Plans tarifaires</h1><p class="muted">Les tarifs sont gérés ici — jamais en dur dans le code. Toute modification s'applique aux nouvelles souscriptions.</p></div>
+    <a class="btn btn-primary" href="/admin/plans/create">+ Nouveau plan</a>
+</div>
+<div class="feature-grid">
+    @foreach (var plan in Model)
+    {
+        <article class="card" style="display:flex;flex-direction:column;gap:.4rem;@(plan.IsActive ? "" : "opacity:.6")">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+                <h3 style="margin:0">@plan.Name <span class="small muted">(@plan.Key)</span></h3>
+                <span class="badge @(plan.IsActive ? "badge-ok" : "badge-neutral")">@(plan.IsActive ? "Actif" : "Inactif")</span>
+            </div>
+            <div style="font-size:1.5rem;font-weight:800;color:var(--brand-700)">@Ui.Money(plan.MonthlyPrice, plan.Currency)<span class="small muted" style="font-size:.75rem"> / mois</span></div>
+            <p class="small muted" style="margin:0">@plan.Description</p>
+            <ul class="small" style="margin:.3rem 0;padding-left:1.1rem">
+                <li>@plan.MaxStores boutique(s) · @plan.MaxProducts produits · @plan.MaxUsers utilisateur(s)</li>
+                <li>Stockage @plan.MaxStorageMb Mo</li>
+                <li>Thèmes premium : @(plan.AllowPremiumThemes ? "oui" : "non") · Rapports avancés : @(plan.AllowAdvancedAnalytics ? "oui" : "non")</li>
+                <li>Exports : @(plan.AllowExports ? "oui" : "non") · Domaine personnalisé : @(plan.AllowCustomDomain ? "préparé" : "non")</li>
+            </ul>
+            <a class="btn btn-outline btn-sm" href="/admin/plans/edit/@plan.Id" style="margin-top:auto">Modifier</a>
+        </article>
+    }
+</div>

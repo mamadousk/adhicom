@@ -1,0 +1,58 @@
+@model Adhicom.Web.ViewModels.CartViewModel
+@{
+    var store = Model.Store;
+    var currency = Model.Currency;
+    ViewData["Title"] = $"Mon panier — {store.Name}";
+    var storeSlug = store.Slug;
+}
+<div style="max-width:1180px;margin:0 auto;padding:1.4rem 1.1rem">
+    <nav class="small muted" style="margin-bottom:.5rem"><a href="/storefront/@storeSlug" style="color:var(--shop-primary)">← Continuer mes achats</a></nav>
+    <h1 style="color:var(--shop-primary);font-size:1.5rem;margin-bottom:1rem">🛒 Votre panier <span class="muted" style="font-size:1rem">chez @store.Name</span></h1>
+
+    @if (Model.Lines.Count == 0)
+    {
+        <div class="empty-state card"><p style="font-size:1.05rem">Votre panier est vide.</p><a class="btn btn-primary" href="/storefront/@storeSlug">Découvrir le catalogue →</a></div>
+    }
+    else
+    {
+        <div class="two-col" style="padding:0;grid-template-columns:1fr 340px">
+            <div>
+                @foreach (var line in Model.Lines)
+                {
+                    <div class="cart-row">
+                        @if (line.ImageUrl is not null) { <img src="@line.ImageUrl" alt="@line.Name" /> } else { <span class="avatar" style="width:74px;height:74px;border-radius:10px">@Ui.Initials(line.Name)</span> }
+                        <div style="min-width:0">
+                            <strong>@line.Name</strong>
+                            @if (line.VariantName is not null) { <br /><span class="small muted">@line.VariantName</span> }
+                            <br /><span class="small muted">@Ui.Money(line.UnitPrice, currency) / unité</span>
+                        </div>
+                        <form class="inline-form" method="post" action="/storefront/@storeSlug/SetQuantity">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="cartItemId" value="@line.CartItemId" />
+                            <div class="qty-stepper" data-stepper>
+                                <button type="button" data-step="-1" aria-label="Retirer un article">−</button>
+                                <input type="number" name="quantity" value="@line.Quantity" min="0" aria-label="Quantité" readonly />
+                                <button type="button" data-step="1" aria-label="Ajouter un article">+</button>
+                            </div>
+                        </form>
+                        <strong style="min-width:70px;text-align:right">@Ui.Money(line.LineTotal, currency)</strong>
+                        <form class="inline-form" method="post" action="/storefront/@storeSlug/RemoveItem">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="cartItemId" value="@line.CartItemId" />
+                            <button class="btn btn-ghost btn-sm" type="submit" aria-label="Retirer de la ligne">🗑️</button>
+                        </form>
+                    </div>
+                }
+                <p class="small muted" style="margin-top:.4rem">Pour vider complètement le panier, réduisez chaque ligne à 0 ou utilisez la corbeille.</p>
+            </div>
+            <aside class="summary-box">
+                <h2 style="font-size:1rem;margin-top:0">Résumé</h2>
+                <div class="summary-row"><span>Sous-total</span><span>@Ui.Money(Model.SubTotal, currency)</span></div>
+                <div class="summary-row"><span>Livraison</span><span class="muted small">calculée à l'étape suivante</span></div>
+                <div class="summary-row summary-total"><span>Total estimé</span><span>@Ui.Money(Model.SubTotal, currency)</span></div>
+                <a class="cart-btn" style="width:100%;justify-content:center;margin-top:.8rem" href="/storefront/@storeSlug/Commander">Commander →</a>
+                <p class="small muted" style="margin-top:.6rem;text-align:center">Paiement à la livraison ou paiement manuel validé par le commerçant.</p>
+            </aside>
+        </div>
+    }
+</div>

@@ -1,0 +1,41 @@
+@model Adhicom.Web.ViewModels.AdminSubscriptionsViewModel
+@{
+    ViewData["Title"] = "Abonnements — Administration Adhicom";
+    var statuses = new[] { "Active", "Grace", "PastDue", "Cancelled", "Expired" };
+    string Label(string s) => Ui.SubscriptionStatus(Enum.Parse<SubscriptionStatus>(s));
+}
+<div class="page-head"><div><p class="breadcrumb"><a href="/admin">Administration</a> / Abonnements</p><h1>Abonnements <span class="muted">(@Model.Subscriptions.Count)</span></h1></div></div>
+<div class="chip-row" style="padding-left:0;padding-right:0;margin-bottom:.75rem">
+    <a class="chip@(string.IsNullOrEmpty(Model.StatusFilter) ? " active" : "")" href="/admin/subscriptions">Tous</a>
+    @foreach (var s in statuses)
+    {
+        <a class="chip@(string.Equals(Model.StatusFilter, s, StringComparison.OrdinalIgnoreCase) ? " active" : "")" href="/admin/subscriptions?status=@s">@Label(s)</a>
+    }
+</div>
+<div class="table-wrap card" style="padding:0"><table class="table">
+    <thead><tr><th>Abonné</th><th>Plan</th><th>Période</th><th>Prix/mois</th><th>Statut</th><th>Actions</th></tr></thead>
+    <tbody>
+    @if (Model.Subscriptions.Count == 0) { <tr><td colspan="6" class="muted">Aucun abonnement.</td></tr> }
+    @foreach (var s in Model.Subscriptions)
+    {
+        <tr>
+            <td>@s.SubscriberEmail</td>
+            <td><strong>@s.PlanName</strong></td>
+            <td class="small">@s.StartsAtUtc.ToString("dd/MM/yy") → @s.EndsAtUtc.ToString("dd/MM/yyyy")</td>
+            <td>@Ui.Money(s.MonthlyPrice, s.Currency)</td>
+            <td><span class="badge @(s.Status == SubscriptionStatus.Active ? "badge-ok" : s.Status == SubscriptionStatus.Grace ? "badge-warn" : "badge-danger")">@Ui.SubscriptionStatus(s.Status)</span></td>
+            <td style="white-space:nowrap">
+                <form class="inline-form" method="post" action="/admin/subscriptions/extend/@s.Id">@Html.AntiForgeryToken()<input type="hidden" name="days" value="30" /><button class="btn btn-ghost btn-sm" type="submit" title="Prolonger de 30 jours">+30 j</button></form>
+                <form class="inline-form" method="post" action="/admin/subscriptions/changeplan/@s.Id">@Html.AntiForgeryToken()
+                    <select name="planId" class="small" style="padding:.3rem" data-auto-submit="1">
+                        <option value="">Plan…</option>
+                        @foreach (var p in Model.Plans) { <option value="@p.Id">@p.Name</option> }
+                    </select>
+                </form>
+                <form class="inline-form" method="post" action="/admin/subscriptions/cancel/@s.Id" data-confirm="Annuler cet abonnement ? Les données sont conservées ; l'accès repasse au plan Gratuit.">@Html.AntiForgeryToken()<button class="btn btn-ghost btn-sm" type="submit" style="color:var(--danger)">Annuler</button></form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table></div>
+<p class="small muted" style="margin-top:.6rem">Expiration ≠ suppression : les comptes et données des commerçants sont toujours conservés ; seules les fonctionnalités sont limitées.</p>

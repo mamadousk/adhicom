@@ -1,0 +1,38 @@
+@model List<Adhicom.Domain.Orders.Customer>
+@{
+    ViewData["Title"] = "Clients — Adhicom";
+    var query = ViewData["Query"] as string;
+    var page = ViewData["Page"] as int? ?? 1;
+    var totalPages = ViewData["TotalPages"] as int? ?? 1;
+    var total = ViewData["Total"] as int? ?? 0;
+}
+<div class="page-head">
+    <div><p class="breadcrumb"><a href="/app">Tableau de bord</a> / Clients</p><h1>Clients <span class="muted">(@total)</span></h1></div>
+    <a class="btn btn-outline btn-sm" href="/app/customers/export">⬇️ Exporter CSV</a>
+</div>
+<form method="get" class="card card-flat" style="margin-bottom:1rem"><input type="search" name="q" value="@query" placeholder="Rechercher par nom, téléphone ou e-mail..." style="max-width:360px" /> <button class="btn btn-outline btn-sm" type="submit">Rechercher</button></form>
+@if (Model.Count == 0)
+{
+    <div class="empty-state card"><p>Aucun client pour l'instant. Les clients apparaîtront ici dès la première commande.</p></div>
+}
+else
+{
+    <div class="table-wrap card" style="padding:0"><table class="table">
+        <thead><tr><th>Client</th><th>Téléphone</th><th>Ville</th><th>Commandes</th><th>Total acheté</th><th>Dernière commande</th></tr></thead>
+        <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td><span class="avatar">@Ui.Initials(c.Name)</span> <a href="/app/customers/details/@c.Id"><strong>@c.Name</strong></a>@if (c.Email is not null) { <br /><span class="small muted">@c.Email</span> }</td>
+                <td><a href="tel:@c.Phone">@c.Phone</a></td>
+                <td>@(c.City ?? "—")</td>
+                <td>@c.TotalOrders</td>
+                <td>@Ui.Money(c.TotalSpent)</td>
+                <td>@(c.LastOrderAtUtc?.ToString("dd/MM/yyyy") ?? "—")</td>
+            </tr>
+        }
+        </tbody>
+    </table></div>
+    @if (totalPages > 1) { <ul class="pagination">@for (var i = 1; i <= totalPages; i++) { <li class="@(i == page ? "active" : "")"><a href="/app/customers?page=@i&q=@query">@i</a></li> }</ul> }
+    <p class="small muted">Export réservé aux plans Starter et supérieurs.</p>
+}

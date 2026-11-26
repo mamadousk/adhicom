@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-label="Chemise lin">
+<defs>
+<linearGradient id="g4" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#0F4C3A"/><stop offset="1" stop-color="#6EE7B7"/>
+</linearGradient>
+<radialGradient id="r4" cx="0.35" cy="0.3" r="0.9">
+<stop offset="0" stop-color="#ffffff" stop-opacity="0.28"/><stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/>
+</radialGradient>
+</defs>
+<rect width="600" height="600" fill="url(#g4)"/>
+<rect width="600" height="600" fill="url(#r4)"/>
+<circle cx="300" cy="235" r="128" fill="#ffffff" fill-opacity="0.14"/>
+<circle cx="300" cy="235" r="96" fill="#ffffff" fill-opacity="0.16"/>
+<text x="300" y="275" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="64" font-weight="700" fill="#ffffff" fill-opacity="0.95">CL</text>
+<rect x="150" y="430" width="300" height="2" fill="#ffffff" fill-opacity="0.5"/>
+<text x="300" y="492" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="34" letter-spacing="6" fill="#ffffff" fill-opacity="0.92">KIN</text>
+<text x="300" y="535" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" letter-spacing="4" fill="#ffffff" fill-opacity="0.6">FASHION HOUSE</text>
+</svg>

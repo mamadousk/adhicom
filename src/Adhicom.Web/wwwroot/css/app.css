@@ -1,0 +1,87 @@
+/* ===== Espace commerçant & administration ===== */
+.app-shell{display:grid;grid-template-columns:264px 1fr;min-height:100vh;background:#F4F6F2}
+.sidebar{background:var(--brand-700);color:#CFE6D8;padding:1.2rem .9rem;display:flex;flex-direction:column;gap:.2rem;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar .logo{color:#fff;margin-bottom:.4rem}
+.sidebar .logo small{color:#8FB8A3}
+.sidebar-section{font-size:.68rem;text-transform:uppercase;letter-spacing:.14em;color:#7FAE97;margin:1rem .6rem .35rem}
+.sidebar-link{display:flex;align-items:center;gap:.65rem;padding:.55rem .7rem;border-radius:10px;color:#CFE6D8;text-decoration:none;font-size:.92rem;font-weight:500}
+.sidebar-link:hover{background:rgba(255,255,255,.08);color:#fff}
+.sidebar-link.active{background:var(--brand-600);color:#fff;box-shadow:inset 3px 0 0 var(--accent)}
+.sidebar-link .count{margin-left:auto;background:var(--accent);color:#231a00;border-radius:999px;font-size:.7rem;font-weight:800;padding:.1rem .45rem}
+.store-switcher{background:rgba(255,255,255,.08);border-radius:12px;padding:.65rem;margin-bottom:.6rem}
+.store-switcher select{width:100%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:.4rem .5rem;font-size:.85rem}
+.store-switcher select option{color:var(--ink)}
+.app-main{min-width:0}
+.topbar{height:60px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 1.4rem;gap:1rem;position:sticky;top:0;z-index:40}
+.topbar-title{font-weight:700;color:var(--brand-700);font-size:1.02rem}
+.app-content{padding:1.5rem;max-width:1180px}
+.page-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap}
+.page-head h1{font-size:1.55rem;margin:0}
+.breadcrumb{font-size:.82rem;color:var(--muted)}
+.breadcrumb a{color:var(--brand-600);text-decoration:none}
+.icon-btn{position:relative;background:var(--brand-50);border:1px solid var(--line);width:40px;height:40px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;color:var(--brand-700)}
+.icon-btn .dot{position:absolute;top:-5px;right:-5px;background:var(--danger);color:#fff;font-size:.62rem;border-radius:999px;min-width:19px;height:19px;display:flex;align-items:center;justify-content:center;padding:0 4px;font-weight:800}
+.card-kpi{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:1rem 1.1rem;box-shadow:var(--shadow)}
+.card-kpi .kpi-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.card-kpi .kpi-value{font-size:1.6rem;font-weight:800;color:var(--brand-700)}
+.card-kpi .kpi-sub{font-size:.78rem;color:var(--muted)}
+.kpi-accent{border-left:4px solid var(--accent)}
+.kpi-brand{border-left:4px solid var(--brand-600)}
+.kpi-danger{border-left:4px solid var(--danger)}
+.inline-form{display:inline}
+.status-select{padding:.4rem .6rem;border-radius:8px;border:1px solid var(--line)}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+@media (max-width:960px){
+  .app-shell{grid-template-columns:1fr}
+  .sidebar{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:.3rem;padding:.6rem}
+  .sidebar-section{display:none}
+  .sidebar .logo{margin:0 .5rem 0 0}
+  .store-switcher{flex-basis:100%;order:10}
+  .sidebar-link{font-size:.8rem;padding:.4rem .55rem}
+  .detail-grid{grid-template-columns:1fr}
+  .app-content{padding:1rem}
+}
+
+/* ---- Admin (Adhil & Co) ---- */
+.sidebar-admin{background:#101815;color:#C9D4CC}
+.sidebar-admin .sidebar-link{color:#C9D4CC}
+.sidebar-admin .sidebar-link:hover{background:rgba(255,255,255,.07);color:#fff}
+.sidebar-admin .sidebar-link.active{background:#1E3A2F;color:#fff;box-shadow:inset 3px 0 0 var(--accent)}
+.sidebar-brand{display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem;padding:.2rem .4rem}
+.sidebar-pill{background:var(--accent);color:#231a00;font-size:.65rem;font-weight:800;letter-spacing:.14em;border-radius:6px;padding:.18rem .45rem}
+.sidebar-nav{display:flex;flex-direction:column;gap:.15rem;flex:1}
+.sidebar-footer{display:flex;flex-direction:column;gap:.15rem;border-top:1px solid rgba(255,255,255,.12);padding-top:.6rem}
+.sidebar-link-muted{color:#8CA096}
+.sidebar-logout{background:none;border:none;width:100%;text-align:left;cursor:pointer;font:inherit}
+.sidebar-logout:hover{background:rgba(255,255,255,.07);color:#fff}
+.topbar-admin-accent{color:var(--accent)}
+.data-table th{background:#F7F8F6}
+.audit-details{max-width:420px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.switch{user-select:none}
+
+/* ---- Compléments KPI / listes / topbar ---- */
+.app-topbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30}
+.app-topbar-inner{display:flex;align-items:center;justify-content:space-between;gap:1rem;max-width:1180px;margin:0 auto;padding:.65rem 1rem}
+.kpi-info{border-top:3px solid #2563EB}
+.kpi-ok{border-top:3px solid var(--ok)}
+.kpi-warn{border-top:3px solid var(--accent)}
+.kpi-sub{font-size:.72rem;color:var(--muted);margin-top:.3rem}
+.quick-links{display:flex;gap:.6rem;flex-wrap:wrap}
+.quick-link{display:inline-flex;align-items:center;gap:.4rem;background:#fff;border:1px solid var(--line);border-radius:12px;padding:.55rem .8rem;text-decoration:none;color:var(--brand-700);font-size:.88rem;font-weight:600}
+.quick-link:hover{border-color:var(--brand-600);box-shadow:var(--shadow)}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
+.card-head h2{font-size:1.05rem;margin:0}
+.plan-current{background:linear-gradient(135deg,#F5FAF6,#FFFFFF);border:1px solid var(--line);border-radius:14px;padding:1rem 1.2rem}
+.stack-row{display:flex;justify-content:space-between;align-items:center;gap:.6rem;border:1px solid var(--line);border-radius:12px;padding:.6rem .75rem;margin-top:.5rem}
+.kv-list{display:grid;grid-template-columns:1fr 1fr;gap:.5rem 1.2rem;margin:.4rem 0 0}
+.kv-list div{min-width:0}
+.kv-list dt{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.kv-list dd{margin:.1rem 0 0;font-size:.92rem;word-break:break-word}
+.text-success{color:var(--ok)}
+
+/* ---- Spark bars (dashboard 14/30 jours) ---- */
+.spark-bars{display:flex;gap:.35rem;align-items:flex-end;height:150px;padding-top:.4rem;overflow-x:auto}
+.spark-col{flex:1 0 22px;display:flex;flex-direction:column;align-items:center;gap:.25rem;height:100%;justify-content:flex-end}
+.spark-bar{width:100%;border-radius:6px 6px 2px 2px;min-height:2px}
+.spark-day{font-size:.58rem;color:var(--muted);white-space:nowrap}
+@media (max-width:960px){ .spark-bars{height:110px} .kv-list{grid-template-columns:1fr} }

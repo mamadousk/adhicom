@@ -1,0 +1,28 @@
+@model List<Adhicom.Domain.Administration.AuditLog>
+@{
+    ViewData["Title"] = "Journal d'audit — Administration Adhicom";
+    var page = ViewData["Page"] as int? ?? 1;
+    var totalPages = ViewData["TotalPages"] as int? ?? 1;
+    var total = ViewData["Total"] as int? ?? 0;
+}
+<div class="page-head"><div><p class="breadcrumb"><a href="/admin">Administration</a> / Audit</p><h1>Journal d'audit <span class="muted">(@total entrées)</span></h1></div></div>
+<div class="table-wrap card" style="padding:0"><table class="table">
+    <thead><tr><th>Date (UTC)</th><th>Action</th><th>Entité</th><th>Détails</th><th>Utilisateur</th></tr></thead>
+    <tbody>
+    @if (Model.Count == 0) { <tr><td colspan="5" class="muted">Aucune entrée.</td></tr> }
+    @foreach (var log in Model)
+    {
+        <tr>
+            <td class="small">@log.CreatedAtUtc.ToString("dd/MM/yyyy HH:mm:ss")</td>
+            <td><code>@log.Action</code></td>
+            <td>@log.Entity @log.EntityId</td>
+            <td class="audit-details small" title="@log.Details">@log.Details</td>
+            <td class="small">@(log.UserName ?? log.UserId?.ToString() ?? "système")</td>
+        </tr>
+    }
+    </tbody>
+</table></div>
+@if (totalPages > 1)
+{
+    <ul class="pagination">@for (var i = 1; i <= totalPages; i++) { <li class="@(i == page ? "active" : "")"><a href="/admin/audit?page=@i">@i</a></li> }</ul>
+}
