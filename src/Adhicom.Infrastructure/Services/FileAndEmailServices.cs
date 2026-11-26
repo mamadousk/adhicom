@@ -1,5 +1,6 @@
 using System.Text;
 using Adhicom.Application.Common;
+using Microsoft.Extensions.Logging;
 
 namespace Adhicom.Infrastructure.Services;
 

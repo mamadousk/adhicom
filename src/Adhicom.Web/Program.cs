@@ -31,20 +31,14 @@ builder.Services.Configure<ForwardedHeadersOptions>(o =>
     o.KnownProxies.Clear();
 });
 
-// Base de données : PostgreSQL (SQLite/InMemory uniquement pour les tests)
+// Base de données : PostgreSQL partout (l'environnement Testing réutilise la connexion
+// fournie par la variable d'environnement/le secret — la CI fournit adhicom_test sur PostgreSQL).
 var testEnvironment = builder.Environment.IsEnvironment("Testing");
 builder.Services.AddDbContext<AdhicomDbContext>(options =>
 {
-    if (testEnvironment)
-    {
-        options.UseInMemoryDatabase("adhicom-integration-tests");
-    }
-    else
-    {
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection est requise.");
-        options.UseNpgsql(connectionString, npgsql => npgsql.EnableRetryOnFailure(3));
-    }
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection est requise.");
+    options.UseNpgsql(connectionString, npgsql => npgsql.EnableRetryOnFailure(3));
 });
 
 // Authentification : ASP.NET Core Identity (mots de passe hachés, verrouillage anti force brute)
